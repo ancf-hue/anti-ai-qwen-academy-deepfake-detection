@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+    <!-- ==================== ОСНОВНЫЕ СТРАНИЦЫ ==================== -->
+    
+    <!-- Главная страница (основной курс AI Editor) -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=ru"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=en"/>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/hero-ai-editor.png</image:loc>
+            <image:title>Anti-AI Qwen Academy - AI Editor Course</image:title>
+            <image:caption>Курс по редактированию ИИ-контента и нейрокопирайтингу</image:caption>
+        </image:image>
+    </url>
+
+    <!-- Якорные ссылки на разделы (SPA с hash-навигацией) -->
+    
+    <!-- Раздел: Обучение / Course -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#course</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=ru#course"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=en#course"/>
+    </url>
+
+    <!-- Раздел: Практика / Practice -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#practice</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=ru#practice"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=en#practice"/>
+    </url>
+
+    <!-- Раздел: Библиотека / Library -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#library</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=ru#library"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/?lang=en#library"/>
+    </url>
+
+    <!-- Раздел: Прогресс / Progress -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#progress</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <!-- ==================== ОТДЕЛЬНЫЕ УРОКИ ДЛЯ SEO ==================== -->
+    
+    <!-- Урок 1: Введение в роль ИИ-редактора -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-1</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/prompt-engineering.png</image:loc>
+            <image:title>Prompt Engineering</image:title>
+        </image:image>
+    </url>
+
+    <!-- Урок 2: Промпт-инженерия -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-2</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- Урок 3: Фактчекинг -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-3</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/fact-checking.png</image:loc>
+            <image:title>Fact Checking</image:title>
+        </image:image>
+    </url>
+
+    <!-- Урок 4: Стиль и тон -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-4</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/style-adaptation.png</image:loc>
+            <image:title>Style Adaptation</image:title>
+        </image:image>
+    </url>
+
+    <!-- Урок 5: Этика и безопасность -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-5</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/ethics-safety.png</image:loc>
+            <image:title>Ethics and Safety</image:title>
+        </image:image>
+    </url>
+
+    <!-- Урок 6: Локализация -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-6</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/localization.png</image:loc>
+            <image:title>Localization</image:title>
+        </image:image>
+    </url>
+
+    <!-- Урок 7: Форматы отчётности -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-7</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/json-formats.png</image:loc>
+            <image:title>JSON Formats</image:title>
+        </image:image>
+    </url>
+
+    <!-- Урок 8: RLHF-разметка -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-8</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/rlhf-comparison.png</image:loc>
+            <image:title>RLHF Comparison</image:title>
+        </image:image>
+    </ul>
+
+    <!-- Урок 9: Портфолио -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-9</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <!-- Урок 10: Финальный экзамен -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/#lesson-10</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- ==================== ИЗОБРАЖЕНИЯ ДЛЯ GOOGLE IMAGES ==================== -->
+    
+    <!-- Hero-изображение -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/hero-ai-editor.png</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+        <image:image>
+            <image:loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/assets/images/hero-ai-editor.png</image:loc>
+            <image:title>Hero AI Editor Banner</image:title>
+            <image:caption>Главный баннер курса AI Editor / Neurocopywriter</image:caption>
+        </image:image>
+    </url>
+
+    <!-- Иконка / логотип -->
+    <url>
+        <loc>https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/favicon.ico</loc>
+        <lastmod>2026-05-25</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+</urlset>

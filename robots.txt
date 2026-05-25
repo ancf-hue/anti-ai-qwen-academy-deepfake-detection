@@ -1,0 +1,53 @@
+# robots.txt for Anti-AI Qwen Academy
+# Оптимизирован для SEO и индексации образовательного контента
+
+User-agent: *
+Allow: /
+
+# Разрешаем индексацию всех страниц (SPA с роутингом через hash)
+# Google и другие поисковые системы обрабатывают hash-URLs
+Allow: /*#/
+
+# Запрещаем индексацию служебных и пустых путей
+Disallow: /?*
+Disallow: /#$
+Disallow: /null
+Disallow: /undefined
+
+# Запрещаем индексацию административных и служебных страниц (если есть)
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cgi-bin/
+
+# Оптимизация для Google Image Search (ваши концепт-картинки)
+User-agent: Googlebot-Image
+Allow: /assets/images/
+Allow: /favicon.ico
+
+# Яндекс.Картинки
+User-agent: YandexImages
+Allow: /assets/images/
+
+# Twitterbot (для отображения превью при шаринге)
+User-agent: Twitterbot
+Allow: /
+
+# Facebook/WhatsApp/Instagram (Open Graph)
+User-agent: Facebookbot
+Allow: /
+
+# LinkedIn
+User-agent: LinkedInBot
+Allow: /
+
+# Указываем путь к sitemap
+Sitemap: https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app/sitemap.xml
+
+# Основные параметры индексации
+Host: https://anti-ai-qwen-academy-deepfake-detec-virid.vercel.app
+
+# Crawl-delay для снижения нагрузки (если сайт будет популярным)
+# Crawl-delay: 5
+
+# Указываем кодировку
+# (комментарий: файл в UTF-8)
