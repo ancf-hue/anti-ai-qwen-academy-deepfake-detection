@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  
+  <!-- 🔹 Production-ready CSP -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ws: wss:; media-src 'self' blob:;">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <!-- 🔹 Логотип -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  
+  <title>anti-ai-qwen-academy • AI Editor / Neurocopywriter</title>
+  
+  <style>
+    :root {
+      --bg: #0a0c14; --surface: rgba(20,24,36,0.95); --glass: rgba(255,255,255,0.06);
+      --text: #e6eaf0; --muted: #8a92a6;
+      --accent: #00d4ff; --qwen: #615ef0; --qwen-glow: rgba(97,94,240,0.3);
+      --editor: #9b59b6; --editor-glow: rgba(155,89,182,0.3);
+      --success: #2ecc71; --warning: #f39c12; --danger: #e74c3c; --gold: #ffd700;
+      --font: system-ui, -apple-system, "Segoe UI", monospace;
+      --radius: 14px; --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; display: flex; justify-content: center; padding: 16px; }
+    button, .btn, .tab-btn { user-select: none; -webkit-tap-highlight-color: transparent; }
+    .code-block, .lesson-content, .cert-id, .lib-item p, .lesson-input, .case-text { user-select: text; }
+    
+    #app { width: 100%; max-width: 860px; background: var(--surface); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,0.6); padding: 20px; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
+    #app::before { content: ''; position: absolute; top: -30%; left: -20%; width: 140%; height: 140%; background: radial-gradient(circle at 20% 20%, var(--editor-glow), transparent 50%), radial-gradient(circle at 80% 80%, rgba(0,212,255,0.08), transparent 50%); pointer-events: none; z-index: 0; }
+
+    .hero-section { text-align: center; padding: 10px 0 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    
+    /* 🔹 Логотип */
+    .logo-row { display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:10px; flex-wrap:wrap; }
+    .logo-img { width:52px; height:52px; object-fit:contain; border-radius:8px; border:1px solid rgba(155,89,182,0.3); flex-shrink:0; }
+    .logo-fallback { display:none; align-items:center; justify-content:center; width:52px; height:52px; background:linear-gradient(135deg, var(--editor), var(--accent)); border-radius:8px; font-size:1.5rem; font-weight:bold; color:#fff; flex-shrink:0; border:1px solid rgba(155,89,182,0.4); }
+    .logo-fallback svg { width:32px; height:32px; }
+    
+    .hero-img { max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0; border: 1px solid rgba(155,89,182,0.3); }
+    .hero-fallback { padding: 20px; background: linear-gradient(135deg, rgba(155,89,182,0.15), rgba(0,212,255,0.1)); border-radius: 12px; margin: 12px 0; border: 2px dashed var(--editor); text-align: center; }
+    .badge-qwen { display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, var(--editor), #8a85f5); color: #fff; border-radius: 20px; font-weight: bold; margin: 8px 4px; font-size: 0.85rem; }
+    .badge-gold { display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, var(--gold), #ffed4e); color: #000; border-radius: 20px; font-weight: bold; margin: 8px 4px; font-size: 0.85rem; }
+    .update-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--success); margin-top: 8px; }
+    .update-indicator.live::before { content: ''; width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .concept-card { background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); transition: var(--transition); }
+    .concept-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px var(--editor-glow); border-color: var(--editor); }
+    .concept-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
+    .concept-icon { width: 100%; height: 120px; background: linear-gradient(135deg, rgba(155,89,182,0.2), rgba(0,212,255,0.15)); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+    .concept-caption { padding: 10px; font-size: 0.8rem; color: var(--muted); text-align: center; font-weight: 600; }
+
+    h1 { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0; }
+    h1 .brand { color: var(--editor) !important; font-weight: 700; }
+    h1 .sep { color: var(--muted) !important; margin: 0 6px; }
+    h1 .spec { color: var(--text) !important; }
+    
+    .hdr-actions { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+    #langBtn, #guideBtn, #voiceBtn { background: var(--glass); border: 1px solid rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 8px; color: var(--text); cursor: pointer; font-weight: bold; transition: var(--transition); font-size: 0.8rem; }
+    #langBtn:hover, #guideBtn:hover, #voiceBtn:hover { border-color: var(--editor); box-shadow: 0 0 15px var(--editor-glow); }
+    #voiceBtn.active { background: rgba(155,89,182,0.2); border-color: var(--editor); color: var(--editor); }
+
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
+    .tab-btn { flex: 1; padding: 10px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: var(--muted); font-weight: 600; cursor: pointer; transition: var(--transition); white-space: nowrap; }
+    .tab-btn.active { background: rgba(155,89,182,0.15); border-color: var(--editor); color: var(--editor); box-shadow: 0 0 20px var(--editor-glow); }
+
+    .tab-content { display: none; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+    .tab-content.active { display: flex; }
+    .tab-content::-webkit-scrollbar { width: 6px; }
+    .tab-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+    .card { background: rgba(0,0,0,0.35); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); transition: var(--transition); }
+    .card h3 { color: var(--gold); margin-bottom: 6px; font-size: 0.9rem; }
+    .card p, .card li { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .card ul, .card ol { padding-left: 18px; margin-top: 4px; }
+
+    .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin: 2px; }
+    .tag-qwen { background: rgba(155,89,182,0.2); border: 1px solid var(--editor); color: var(--editor); }
+    .tag-green { background: rgba(46,204,113,0.2); border: 1px solid var(--success); color: var(--success); }
+    .tag-blue { background: rgba(0,212,255,0.2); border: 1px solid var(--accent); color: var(--accent); }
+
+    .lesson-card { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px; margin: 8px 0; border-left: 3px solid var(--muted); transition: var(--transition); }
+    .lesson-card.locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.8); }
+    .lesson-card.active { border-left-color: var(--editor); }
+    .lesson-card.completed { border-left-color: var(--success); opacity: 0.7; }
+    .lesson-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .lesson-title { font-weight: bold; color: var(--editor); font-size: 0.95rem; }
+    .lesson-status { padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+    .lesson-status.locked { background: rgba(255,255,255,0.1); color: var(--muted); }
+    .lesson-status.active { background: rgba(155,89,182,0.2); color: var(--editor); }
+    .lesson-status.completed { background: rgba(46,204,113,0.2); color: var(--success); }
+    .lesson-content { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+    .case-text { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin: 8px 0; border-left: 3px solid var(--accent); white-space: pre-wrap; }
+    .lesson-task { background: rgba(155,89,182,0.08); padding: 10px; border-radius: 8px; margin: 8px 0; font-size: 0.8rem; border: 1px solid rgba(155,89,182,0.2); }
+    .qwen-format { background: rgba(0,212,255,0.08); padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 0.75rem; font-family: monospace; border: 1px dashed var(--accent); color: var(--accent); }
+    .lesson-input { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text); margin: 8px 0; font-family: var(--font); min-height: 80px; resize: vertical; }
+    .lesson-input:focus { border-color: var(--editor); box-shadow: 0 0 0 2px var(--editor-glow); }
+    .lesson-feedback { margin-top: 8px; padding: 10px; border-radius: 6px; font-size: 0.82rem; display: none; }
+    .lesson-feedback.success { background: rgba(46,204,113,0.1); border: 1px solid var(--success); color: var(--success); }
+    .lesson-feedback.error { background: rgba(231,76,60,0.1); border: 1px solid var(--danger); color: #ff8a8a; }
+
+    .exam-question { margin: 16px 0; padding: 14px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .exam-question.answered { border-color: var(--editor); }
+    .exam-options label { display: block; margin: 6px 0; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; cursor: pointer; }
+    .exam-options label:hover { background: rgba(255,255,255,0.08); }
+    .exam-options input[type="radio"] { margin-right: 8px; accent-color: var(--editor); }
+
+    .certificate { background: linear-gradient(135deg, rgba(155,89,182,0.15), rgba(0,212,255,0.15)); border: 3px solid var(--editor); border-radius: 16px; padding: 30px; text-align: center; margin: 12px 0; position: relative; overflow: hidden; box-shadow: 0 0 40px var(--editor-glow); }
+    .certificate::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(155,89,182,0.03) 10px, rgba(155,89,182,0.03) 20px); animation: shimmer 3s linear infinite; }
+    @keyframes shimmer { 0%{transform:translate(-50%,-50%)} 100%{transform:translate(0,0)} }
+    .certificate-content { position: relative; z-index: 1; }
+    .certificate h3 { color: var(--editor); margin-bottom: 12px; font-size: 1.5rem; }
+    .certificate p { font-size: 0.9rem; color: var(--text); margin: 6px 0; }
+    .cert-badge { display: inline-block; padding: 6px 16px; background: linear-gradient(135deg, var(--editor), #8a85f5); color: #fff; border-radius: 25px; font-weight: bold; margin: 12px 0; box-shadow: 0 4px 15px var(--editor-glow); }
+    .cert-id { font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 6px; color: var(--editor); display: inline-block; margin: 8px 0; }
+    .cert-seal { width: 80px; height: 80px; border: 3px solid var(--editor); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 16px auto; background: rgba(155,89,182,0.1); font-size: 2rem; box-shadow: 0 0 20px var(--editor-glow); }
+    .cert-validator { margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: left; }
+    .cert-validator input { width: 100%; padding: 8px; margin: 8px 0; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text); font-family: monospace; }
+
+    .pipeline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 12px 0; }
+    .pipeline-card { background: rgba(155,89,182,0.08); padding: 12px; border-radius: 10px; border: 1px solid rgba(155,89,182,0.2); }
+    .pipeline-card h4 { color: var(--editor); margin-bottom: 6px; font-size: 0.85rem; }
+    .pipeline-card p { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+    .pipeline-card .fmt { font-family: monospace; font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; color: var(--accent); }
+
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
+    .skill-card { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border-left: 3px solid var(--accent); }
+    .skill-card h4 { color: var(--gold); margin-bottom: 8px; font-size: 0.9rem; }
+    .skill-card li { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+
+    .warning-box { background: rgba(243,156,18,0.1); border-left: 4px solid var(--warning); padding: 12px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 0.8rem; }
+    .warning-box strong { color: var(--warning); }
+
+    .collab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 12px 0; }
+    .collab-card { padding: 10px; border-radius: 8px; font-size: 0.8rem; }
+    .collab-card.green { background: rgba(46,204,113,0.1); border: 1px solid var(--success); }
+    .collab-card.yellow { background: rgba(243,156,18,0.1); border: 1px solid var(--warning); }
+    .collab-card.orange { background: rgba(230,126,34,0.1); border: 1px solid #e67e22; }
+    .collab-card.blue { background: rgba(0,212,255,0.1); border: 1px solid var(--accent); }
+    .collab-card h4 { margin-bottom: 4px; }
+    .collab-card p { font-size: 0.75rem; color: var(--muted); }
+
+    /* 🔹 Новые компоненты для AI-редактора */
+    .prompt-builder { background: rgba(155,89,182,0.1); border: 1px solid var(--editor); border-radius: 10px; padding: 14px; margin: 12px 0; }
+    .prompt-builder textarea { width: 100%; min-height: 80px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text); padding: 10px; font-family: var(--font); font-size: 0.85rem; }
+    .prompt-builder textarea:focus { border-color: var(--editor); box-shadow: 0 0 0 2px var(--editor-glow); }
+    .style-slider { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+    .style-slider input[type="range"] { flex: 1; accent-color: var(--editor); }
+    .style-slider span { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+    .fact-check-item { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 6px 0; border-left: 3px solid var(--muted); }
+    .fact-check-item.verified { border-left-color: var(--success); }
+    .fact-check-item.suspicious { border-left-color: var(--warning); }
+    .fact-check-item.false { border-left-color: var(--danger); }
+    .rlhf-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .rlhf-card { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; cursor: pointer; transition: var(--transition); border: 2px solid transparent; }
+    .rlhf-card:hover { border-color: rgba(155,89,182,0.3); }
+    .rlhf-card.selected { border-color: var(--editor); box-shadow: 0 0 15px var(--editor-glow); }
+    .qwen-preview { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: var(--accent); margin: 8px 0; white-space: pre-wrap; display: none; }
+    .rlhf-textarea { width: 100%; min-height: 60px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text); padding: 8px; font-family: var(--font); font-size: 0.8rem; margin-top: 8px; }
+
+    input, textarea, select { width: 100%; padding: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: var(--text); font-family: var(--font); outline: none; }
+    input:focus, textarea:focus { border-color: var(--editor); box-shadow: 0 0 0 2px var(--editor-glow); }
+
+    .btn { padding: 10px 14px; background: linear-gradient(135deg, var(--editor), #8a85f5); color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: var(--transition); box-shadow: 0 4px 15px var(--editor-glow); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--editor-glow); }
+    .btn.secondary { background: var(--glass); color: var(--text); border: 1px solid rgba(255,255,255,0.2); box-shadow: none; }
+    .btn.danger { background: linear-gradient(135deg, var(--danger), #c0392b); color: #fff; }
+    .btn-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+    .skill-item { margin: 10px 0; }
+    .skill-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+    .skill-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+    .skill-fill { height: 100%; background: linear-gradient(90deg, var(--editor), var(--accent)); width: 0%; transition: width 0.8s ease; }
+
+    .support { text-align: center; padding: 14px; background: linear-gradient(135deg, rgba(155,89,182,0.1), rgba(0,212,255,0.1)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); margin-top: auto; }
+    .support h3 { color: var(--editor); margin-bottom: 8px; }
+    .support p { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    footer { text-align: center; color: var(--muted); font-size: 0.7rem; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px; }
+
+    .modal { position: fixed; inset: 0; background: rgba(2,2,8,0.92); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
+    .modal.open { display: flex; }
+    .modal-content { background: var(--surface); padding: 24px; border-radius: 16px; border: 1px solid rgba(155,89,182,0.3); max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+
+    .materials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin: 12px 0; }
+    .material-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border-left: 3px solid var(--editor); }
+    .material-item h4 { color: var(--editor); font-size: 0.85rem; margin-bottom: 4px; }
+    .material-item p { font-size: 0.75rem; color: var(--muted); }
+    .material-item .fmt { font-family: monospace; font-size: 0.7rem; color: var(--accent); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+
+    @media(max-width:480px) {
+      #app { padding: 14px; } h1 { font-size: 1rem; }
+      .logo-img, .logo-fallback { width:40px; height:40px; }
+      .tab-btn { padding: 8px; font-size: 0.75rem; } .card { padding: 10px; }
+      .btn { padding: 8px 10px; font-size: 0.8rem; }
+      .concept-grid { grid-template-columns: 1fr 1fr; }
+      .pipeline-grid { grid-template-columns: 1fr; }
+      .certificate { padding: 20px; }
+      .rlhf-compare { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<main id="app">
+  <div class="hero-section">
+    <!-- 🔹 ВИДИМЫЙ ЛОГОТИП + ТЕКСТ -->
+    <div class="logo-row">
+      <img src="favicon.ico" alt="anti-ai-qwen-academy" class="logo-img"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="logo-fallback" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h1>
+        <span class="brand">anti-ai-qwen-academy</span>
+        <span class="sep">•</span>
+        <span class="spec">AI Editor / Neurocopywriter</span>
+      </h1>
+    </div>
+    
+    <p style="font-size:0.85rem; color:var(--muted); margin-top:4px;" data-i18n="hero_subtitle">
+      Qwen (Tongyi Qianwen) • 100% Offline • 10 days
+    </p>
+    
+    <!-- 🔹 Hero изображение -->
+    <img src="assets/images/hero-ai-editor.png" alt="AI Editor Course" class="hero-img" 
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <div class="hero-fallback" style="display:none;">
+      <p style="font-size:3rem; margin-bottom:8px;">✍️🤖</p>
+      <p style="color:var(--editor); font-weight:bold; font-size:1.1rem;" data-i18n="qwen_title">
+        Anti-AI Qwen Academy: AI Editor Specialist
+      </p>
+      <p style="font-size:0.8rem; margin-top:8px;">
+        🎓 10 days • 💼 Qwen Pipelines • 🔐 Offline • 📝 Prompt Engineering
+      </p>
+    </div>
+
+    <div style="margin:12px 0;">
+      <span class="badge-qwen">✍️ Editing</span>
+      <span class="badge-qwen">🔍 Fact-Check</span>
+      <span class="badge-qwen">📝 RLHF</span>
+      <span class="badge-gold">💼 $500-2000/mo</span>
+    </div>
+
+    <div class="hdr-actions">
+      <button id="guideBtn" onclick="app.openModal('guideModal')">📖 <span data-i18n="guide_btn">10-Day Plan</span></button>
+      <button id="voiceBtn" onclick="app.toggleVoice()">🔇</button>
+      <button id="langBtn" onclick="app.toggleLang()">🌐 EN</button>
+    </div>
+  </div>
+
+  <!-- 🔹 Concept Grid с изображениями -->
+  <div class="concept-grid">
+    <div class="concept-card">
+      <img src="assets/images/prompt-engineering.png" alt="Prompt Engineering" onerror="this.parentElement.innerHTML='<div class=\'concept-icon\'>✍️</div><div class=\'concept-caption\'>Prompt Eng</div>'">
+      <div class="concept-caption" data-i18n="concept1">✍️ Prompt Eng</div>
+    </div>
+    <div class="concept-card">
+      <img src="assets/images/fact-checking.png" alt="Fact Checking" onerror="this.parentElement.innerHTML='<div class=\'concept-icon\'>🔍</div><div class=\'concept-caption\'>Fact Check</div>'">
+      <div class="concept-caption" data-i18n="concept2">🔍 Fact Check</div>
+    </div>
+    <div class="concept-card">
+      <img src="assets/images/style-adaptation.png" alt="Style Adaptation" onerror="this.parentElement.innerHTML='<div class=\'concept-icon\'>🎨</div><div class=\'concept-caption\'>Style Adapt</div>'">
+      <div class="concept-caption" data-i18n="concept3">🎨 Style Adapt</div>
+    </div>
+    <div class="concept-card">
+      <img src="assets/images/ethics-safety.png" alt="Ethics Safety" onerror="this.parentElement.innerHTML='<div class=\'concept-icon\'>⚖️</div><div class=\'concept-caption\'>Ethics</div>'">
+      <div class="concept-caption" data-i18n="concept4">⚖️ Ethics</div>
+    </div>
+    <div class="concept-card">
+      <img src="assets/images/localization.png" alt="Localization" onerror="this.parentElement.innerHTML='<div class=\'concept-icon\'>🌍</div><div class=\'concept-caption\'>Localization</div>'">
+      <div class="concept-caption" data-i18n="concept5">🌍 Localization</div>
+    </div>
+    <div class="concept-card">
+      <img src="assets/images/json-formats.png" alt="JSON Formats" onerror="this.parentElement.innerHTML='<div class=\'concept-icon\'>📊</div><div class=\'concept-caption\'>JSON Formats</div>'">
+      <div class="concept-caption" data-i18n="concept6">📊 JSON Formats</div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="course" data-i18n="tab_course">🎓 Course</button>
+    <button class="tab-btn" data-tab="tools" data-i18n="tab_tools">🛠️ Tools</button>
+    <button class="tab-btn" data-tab="library" data-i18n="tab_library">📚 Library</button>
+    <button class="tab-btn" data-tab="progress" data-i18n="tab_progress">📅 Progress</button>
+  </nav>
+
+  <!-- 🎓 COURSE -->
+  <section id="course" class="tab-content active">
+    <div class="card" style="border: 2px solid var(--editor); background: linear-gradient(135deg, rgba(155,89,182,0.1), rgba(0,212,255,0.1));">
+      <h3 style="color: var(--editor); text-align: center;" data-i18n="cert_conditions">🏆 CERTIFICATE REQUIREMENTS</h3>
+      <div style="display: flex; justify-content: center; gap: 16px; margin: 12px 0; flex-wrap: wrap;">
+        <div style="text-align: center;"><div style="font-size: 2rem;">📚</div><b>10/10 lessons</b><br><span style="font-size: 0.8rem; color: var(--muted);" data-i18n="cond1_sub">AI Editing + Qwen formats</span></div>
+        <div style="text-align: center;"><div style="font-size: 2rem;">🧠</div><b>10/10 exam</b><br><span style="font-size: 0.8rem; color: var(--muted);" data-i18n="cond2_sub">No mistakes</span></div>
+        <div style="text-align: center;"><div style="font-size: 2rem;">📁</div><b data-i18n="cond3">Portfolio</b><br><span style="font-size: 0.8rem; color: var(--muted);" data-i18n="cond3_sub">5 cases in Qwen formats</span></div>
+      </div>
+      <p style="text-align: center; font-size: 0.85rem; color: var(--muted);" data-i18n="cert_warning">⚠️ Perfect results → Contributor Pipeline access</p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="progress_title">📊 Progress</h3>
+      <div class="skill-item">
+        <div class="skill-label"><span data-i18n="lessons_done">Lessons completed</span><span id="courseProgress">0/10</span></div>
+        <div class="skill-bar"><div class="skill-fill" id="courseBar" style="width:0%"></div></div>
+      </div>
+      <div style="margin-top:12px; text-align:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+        <button class="btn danger" onclick="app.resetProgress()" style="font-size:0.8rem; width:100%;" data-i18n="reset_btn">🔄 Reset</button>
+        <p style="font-size:0.7rem; color:var(--muted); margin-top:6px;" data-i18n="reset_warning">⚠️ All data will be deleted</p>
+      </div>
+    </div>
+
+    <div id="lessonsContainer"></div>
+    <div id="examContainer"></div>
+
+    <!-- CERTIFICATE -->
+    <div class="certificate" id="certificateBox" style="display:none;">
+      <div class="certificate-content">
+        <div class="cert-seal">✍️</div>
+        <h3 data-i18n="cert_heading">🎓 CERTIFICATE</h3>
+        <p style="font-size:1rem; margin:8px 0; color:var(--editor);">
+          <b data-i18n="cert_course">Course: <span id="certCourseDisplay">Qwen AI Editor / Neurocopywriter Specialist</span></b>
+        </p>
+        <p data-i18n="cert_confirms">This certifies that</p>
+        <p style="font-size:1.2rem; color:var(--gold); margin:8px 0; font-weight:bold;" data-i18n="cert_who">Certified AI Editor / Neurocopywriter Specialist</p>
+        <p data-i18n="cert_completed">has successfully completed the AI content editing and verification course for Qwen pipelines</p>
+        <div class="cert-id" id="certIdDisplay">QWEN-EDITOR-XXXXXX</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:8px;">
+          <span data-i18n="cert_issuer">Issuer:</span> <span id="certIssuerDisplay">Anti-AI Qwen Academy</span>
+        </p>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">
+          <span data-i18n="cert_pipeline">Pipeline:</span> <span id="certPipelineDisplay">qwen-ai-editor-safety</span>
+        </p>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">
+          <span data-i18n="cert_compliance">Compliance:</span> <span id="certComplianceDisplay">tongyi_safety_v2, iso_iec_42001</span>
+        </p>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;" data-i18n="cert_date_label">Date: <span id="certDateDisplay"></span></p>
+        <div style="margin:12px 0;">
+          <button class="btn secondary" onclick="app.exportCertificate()" style="font-size:0.8rem; margin-right:8px;" data-i18n="cert_download">💾 JSON</button>
+          <button class="btn secondary" onclick="app.exportQwenPortfolio()" style="font-size:0.8rem; margin-right:8px;" data-i18n="cert_qwen_export">📤 Qwen Format</button>
+          <button class="btn secondary" onclick="app.printCertificate()" style="font-size:0.8rem;" data-i18n="cert_print">🖨️ Print</button>
+        </div>
+        <div class="cert-badge" data-i18n="cert_badge">Qwen AI Editor Specialist</div>
+        <div class="btn-group" style="justify-content:center; margin-top:16px; flex-wrap:wrap;">
+          <button class="btn" onclick="app.printCertificate()" data-i18n="cert_print">🖨️ Print / PDF</button>
+          <button class="btn secondary" onclick="app.switchTab('tools')" data-i18n="cert_practice">🛠️ Tools</button>
+        </div>
+        <div class="cert-validator">
+          <h4 style="color:var(--editor); margin:0 0 8px 0;" data-i18n="cert_validate_title">🔍 Verify Certificate</h4>
+          <input type="text" id="validateInput" placeholder="QWEN-EDITOR-XXXXXX" pattern="QWEN-EDITOR-[A-Z0-9]{6}">
+          <button class="btn secondary" onclick="app.validateCertificate()" style="width:100%; font-size:0.8rem;" data-i18n="cert_validate_btn">✅ Check</button>
+          <div id="validateResult" style="margin-top:8px; font-size:0.8rem; display:none;"></div>
+        </div>
+        <p style="font-size:0.75rem; color:var(--muted); margin-top:12px;" data-i18n="cert_security">🔒 Offline • SHA-256 • Qwen-compatible</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🛠️ TOOLS (новая вкладка!) -->
+  <section id="tools" class="tab-content">
+    <div class="card" style="text-align:center; border-color:var(--editor);">
+      <h3 data-i18n="tools_title">🛠️ AI Editor Toolkit</h3>
+      <p style="font-size:0.85rem; color:var(--muted); margin-top:8px;" data-i18n="tools_subtitle">Interactive tools for practicing AI editing skills</p>
+    </div>
+    
+    <!-- Prompt Builder -->
+    <div class="card">
+      <h4 style="color:var(--editor);">✍️ <span data-i18n="prompt_builder">Prompt Builder</span></h4>
+      <p style="font-size:0.8rem; color:var(--muted); margin:4px 0;" data-i18n="prompt_desc">Craft effective prompts for Qwen</p>
+      <div class="prompt-builder">
+        <textarea id="promptInput" placeholder="Например: Напиши пост для соцсетей о..."></textarea>
+        <div class="style-slider">
+          <span>🎭 Formal</span>
+          <input type="range" min="1" max="5" value="3" id="toneSlider" oninput="app.updateToneLabel()">
+          <span id="toneLabel">🤝 Neutral</span>
+        </div>
+        <button class="btn secondary" onclick="app.generatePromptPreview()" style="font-size:0.8rem; width:100%;" data-i18n="preview_btn">👁️ Preview Qwen Format</button>
+        <div id="promptPreview" class="qwen-preview"></div>
+      </div>
+    </div>
+    
+    <!-- Fact-Check Simulator -->
+    <div class="card" style="margin-top:12px;">
+      <h4 style="color:var(--editor);">🔍 <span data-i18n="factcheck_title">Fact-Check Simulator</span></h4>
+      <p style="font-size:0.8rem; color:var(--muted); margin:4px 0;" data-i18n="factcheck_desc">Practice verifying claims offline</p>
+      <div id="factCheckList"></div>
+      <button class="btn secondary" onclick="app.newFactCheck()" style="font-size:0.8rem; margin-top:8px; width:100%;" data-i18n="new_factcheck">🔄 New Challenge</button>
+    </div>
+    
+    <!-- RLHF Comparator -->
+    <div class="card" style="margin-top:12px;">
+      <h4 style="color:var(--editor);">🔄 <span data-i18n="rlhf_title">RLHF Comparator</span></h4>
+      <p style="font-size:0.8rem; color:var(--muted); margin:4px 0;" data-i18n="rlhf_desc">Compare two AI responses and justify your choice</p>
+      <div id="rlhfComparator"></div>
+      <button class="btn secondary" onclick="app.newRlhfChallenge()" style="font-size:0.8rem; margin-top:8px; width:100%;" data-i18n="new_rlhf">🔄 New Comparison</button>
+    </div>
+  </section>
+
+  <!-- 📚 LIBRARY -->
+  <section id="library" class="tab-content">
+    <div class="card" style="text-align:center; border-color:var(--editor);">
+      <h3 data-i18n="library_title">📚 AI Editor Specialist Library</h3>
+      <p style="font-size:0.85rem; color:var(--muted); margin-top:8px;" data-i18n="library_subtitle">Pipelines, data formats, tools, materials</p>
+    </div>
+
+    <!-- WHY QWEN NEEDS AI EDITORS -->
+    <div class="card lib-section" data-tags="qwen why pipelines">
+      <h3 style="color:var(--editor);" data-i18n="why_editor_title">🎯 Why Qwen needs AI Editors</h3>
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:12px;" data-i18n="why_editor_desc">
+        Qwen generates vast amounts of content. AI Editors ensure quality, accuracy, and ethical compliance before content reaches users.
+      </p>
+      <div class="pipeline-grid">
+        <div class="pipeline-card">
+          <h4>✍️ Content Refinement</h4>
+          <p data-i18n="pipe1_desc">Editing AI-generated text for clarity, accuracy, and brand voice</p>
+          <span class="fmt">qwen_editor_prompt.json</span>
+        </div>
+        <div class="pipeline-card">
+          <h4>🔍 Fact Verification</h4>
+          <p data-i18n="pipe2_desc">Cross-checking claims in AI outputs against known facts</p>
+          <span class="fmt">qwen_factcheck_report.md</span>
+        </div>
+        <div class="pipeline-card">
+          <h4>🎨 Style Adaptation</h4>
+          <p data-i18n="pipe3_desc">Adapting AI content tone for different audiences and platforms</p>
+          <span class="fmt">qwen_style_guide.json</span>
+        </div>
+        <div class="pipeline-card">
+          <h4>⚖️ Safety & Ethics Review</h4>
+          <p data-i18n="pipe4_desc">Identifying bias, manipulation, and policy violations</p>
+          <span class="fmt">qwen_safety_audit.csv</span>
+        </div>
+        <div class="pipeline-card">
+          <h4> RLHF Annotation</h4>
+          <p data-i18n="pipe5_desc">Scoring and comparing model responses for alignment training</p>
+          <span class="fmt">qwen_rlhf_pair.json</span>
+        </div>
+      </div>
+      <div class="warning-box" style="margin-top:12px;">
+        <strong data-i18n="warning_title">💡 Important:</strong>
+        <span data-i18n="why_warning">AI Editors don't write code, but directly influence content quality, safety, and user trust. Qwen accepts them via content review, RLHF annotation, and safety evaluation pipelines.</span>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="card lib-section" data-tags="skills qwen">
+      <h3 data-i18n="skills_section">🛠️ Graduate Skills</h3>
+      <div class="skills-grid">
+        <div class="skill-card">
+          <h4 data-i18n="hard_skills">🔹 Hard Skills</h4>
+          <ul>
+            <li data-i18n="hard1">Prompt engineering for Qwen models</li>
+            <li data-i18n="hard2">Offline fact-checking methodology</li>
+            <li data-i18n="hard3">Style and tone adaptation</li>
+            <li data-i18n="hard4">RLHF response scoring and comparison</li>
+            <li data-i18n="hard5">JSON/Markdown reporting (Qwen-compatible)</li>
+          </ul>
+        </div>
+        <div class="skill-card">
+          <h4 data-i18n="soft_skills">🔹 Soft Skills</h4>
+          <ul>
+            <li data-i18n="soft1">Critical reading and analysis</li>
+            <li data-i18n="soft2">Cultural sensitivity and localization</li>
+            <li data-i18n="soft3">Ethical judgment in content review</li>
+            <li data-i18n="soft4">Clear documentation for ML teams</li>
+            <li data-i18n="soft5">Compliance mindset: Tongyi AI Principles</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOBS -->
+    <div class="card lib-section" data-tags="jobs industries qwen">
+      <h3 data-i18n="jobs_title">💼 Where do AI Editors work?</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        <span class="tag tag-qwen">📰 Media Publishing</span>
+        <span class="tag tag-qwen">🎯 Content Marketing</span>
+        <span class="tag tag-qwen">📱 Social Media</span>
+        <span class="tag tag-qwen">📚 E-learning</span>
+        <span class="tag tag-qwen">🏢 Corporate Comms</span>
+        <span class="tag tag-qwen">🤖 AI Training Data</span>
+      </div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-top:12px;" data-i18n="salary_info">Starting salaries: $500-2000/mo • Remote • Flexible</p>
+    </div>
+  </section>
+
+  <!-- 📅 PROGRESS -->
+  <section id="progress" class="tab-content">
+    <div class="card">
+      <h3 data-i18n="progress_path">📈 Path to AI Editor Specialist</h3>
+      <ol style="padding-left:20px; color:var(--muted); line-height:1.8; font-size:0.82rem;">
+        <li><b>Days 1-3:</b> <span data-i18n="days1_3_desc">AI editor role, prompt engineering, fact-checking basics</span></li>
+        <li><b>Days 4-6:</b> <span data-i18n="days4_6_desc">Style adaptation, ethics, localization</span></li>
+        <li><b>Days 7-8:</b> <span data-i18n="days7_8_desc">Reporting formats, RLHF annotation</span></li>
+        <li><b>Day 9:</b> <span data-i18n="day9_desc">Portfolio in Qwen formats</span></li>
+        <li><b>Day 10:</b> <span data-i18n="day10_desc">FINAL EXAM (10/10)</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3 data-i18n="output_title">📦 Qwen Editor Reporting Formats</h3>
+      <div style="margin-top:8px;">
+        <div class="qwen-format">{"type": "qwen_editor_prompt", "task": "...", "style": {"tone": "professional"}}</div>
+        <div class="qwen-format">{"type": "qwen_rlhf_pair", "query": "...", "response_a": "...", "response_b": "..."}</div>
+        <div class="qwen-format">pipeline: qwen-ai-editor-safety | version: qwen-v2.5</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="support">
+    <h3 data-i18n="support_title">🤝 SUPPORT THE PROJECT 💙</h3>
+    <p data-i18n="support_desc">App is free. Always will be.<br>Support development:</p>
+    <div style="background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:6px; display:inline-block; margin:4px 0;">
+      <span id="phoneNum" style="color:var(--gold); font-weight:bold;">8-920-227-56-76</span>
+    </div>
+    <button class="btn secondary" style="margin-top:6px; font-size:0.8rem;" onclick="app.copyPhone()" data-i18n="copy_phone">📋 Copy</button>
+    <a href="https://ancf-hue.github.io/" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:bold; display:block; margin-top:4px;" data-i18n="catalog_link">🌟 Anti-AI Shield Catalog</a>
+  </section>
+
+  <footer data-i18n="footer">Anti-AI Qwen Academy | 100% Offline | AI Editor / Neurocopywriter</footer>
+</main>
+
+<!-- GUIDE MODAL -->
+<div id="guideModal" class="modal" onclick="if(event.target===this)app.closeModal('guideModal')">
+  <div class="modal-content">
+    <button class="modal-close" onclick="app.closeModal('guideModal')">✕</button>
+    <h2 style="color:var(--editor); margin-bottom:12px;" data-i18n="guide_title">🚀 10-Day Plan</h2>
+    <ol style="padding-left:20px; color:var(--muted); line-height:1.8; font-size:0.85rem;">
+      <li><b>1:</b> <span>🧠 Intro: AI Editor role in generative content era</span></li>
+      <li><b>2:</b> <span>✍️ Prompt Engineering: task framing for Qwen</span></li>
+      <li><b>3:</b> <span>🔍 Offline fact-checking: checklists, logic, sources</span></li>
+      <li><b>4:</b> <span>🎨 Style & Tone: brand, audience, platform adaptation</span></li>
+      <li><b>5:</b> <span>⚖️ Ethics & Safety: bias, manipulation, transparency</span></li>
+      <li><b>6:</b> <span>🌍 Localization: cultural nuances, idioms, taboos</span></li>
+      <li><b>7:</b> <span>📊 Reporting formats: JSON, Markdown, Qwen templates</span></li>
+      <li><b>8:</b> <span>🔄 RLHF labeling: quality scoring, response comparison</span></li>
+      <li><b>9:</b> <span>📁 Portfolio: 5 cases in Qwen pipeline formats</span></li>
+      <li><b>10:</b> <span>🏆 FINAL EXAM (10/10) → QWEN-EDITOR-XXXXXX</span></li>
+    </ol>
+    <button class="btn" style="margin-top:16px; width:100%;" onclick="app.closeModal('guideModal')" data-i18n="guide_start">Let's go!</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ========== 🔐 CERTIFICATE UTILS (Unicode-safe) ==========
+  const CERT_SECRET = "qwen_editor_specialist_2026_secret";
+  
+  function generateCertSignature(id, issuer) {
+    const str = `${id}:${issuer}:${CERT_SECRET}`;
+    try {
+      return btoa(encodeURIComponent(str)).substring(0, 24);
+    } catch(e) {
+      return Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2,'0')).join('').substring(0, 24);
+    }
+  }
+  
+  function verifyCertSignature(id, issuer, sig) {
+    if (!id || !issuer || !sig) return false;
+    return generateCertSignature(id, issuer) === sig;
+  }
+
+  // ========== 📦 AI EDITOR COURSE DATA ==========
+  const AI_EDITOR_COURSE = [
+    { 
+      day: 1, 
+      title: { ru: "🧠 Введение: роль ИИ-редактора", en: "🧠 Intro: AI Editor role" },
+      content: { 
+        ru: "ИИ-редактор не заменяет ИИ, а усиливает его: проверяет факты, адаптирует стиль, обеспечивает этичность и соответствие аудитории. Qwen генерирует контент, но редактор обеспечивает качество.",
+        en: "AI Editor doesn't replace AI, but enhances it: fact-checking, style adaptation, ethics compliance, audience alignment. Qwen generates content, but the editor ensures quality."
+      },
+      case: {
+        ru: "Qwen сгенерировал статью: «Илон Маск купил Twitter за $1 млрд в 2023». Фактически: $44 млрд, 2022 год. Модель «галлюцинировала» цифры.",
+        en: "Qwen generated an article: 'Elon Musk bought Twitter for $1B in 2023'. Factually: $44B, 2022. The model 'hallucinated' the numbers."
+      },
+      task: {
+        ru: "Назовите 3 типа ошибок, которые может допускать ИИ-модель в тексте. Как бы вы их проверяли?",
+        en: "Name 3 types of errors an AI model can make in text. How would you check for them?"
+      },
+      check: (a) => (/факт|ошибк|галлюцинац|hallucin|fact|error|bias|предвзятость|bias|дата|date|числ|number/i.test(a)) && (/проверк|верифиц|check|verify/i.test(a)),
+      hint: {
+        ru: "1) Фактические ошибки (даты, цифры) → кросс-чекинг 2) Предвзятость → проверка тона и формулировок 3) Галлюцинации → верификация источников",
+        en: "1) Factual errors (dates, numbers) → cross-checking 2) Bias → tone and phrasing review 3) Hallucinations → source verification"
+      },
+      qwenFormat: '{"type": "qwen_editor_error_report.json", "error_types": ["factual", "bias", "hallucination"]}'
+    },
+    { 
+      day: 2, 
+      title: { ru: "✍️ Промпт-инженерия: постановка задач Qwen", en: "✍️ Prompt Engineering: task framing for Qwen" },
+      content: {
+        ru: "Качество вывода Qwen напрямую зависит от качества промпта. Хороший промпт включает: роль, задачу, контекст, формат вывода, ограничения.",
+        en: "Qwen output quality directly depends on prompt quality. A good prompt includes: role, task, context, output format, constraints."
+      },
+      case: {
+        ru: "Плохой промпт: «Напиши пост». Хороший: «Ты — SMM-менеджер. Напиши пост для LinkedIn о трендах AI-редактирования. Тон: профессиональный. Длина: 200-300 слов. Включи 3 конкретных примера. Избегай хайпа.»",
+        en: "Bad prompt: 'Write a post'. Good: 'You are an SMM manager. Write a LinkedIn post about AI editing trends. Tone: professional. Length: 200-300 words. Include 3 specific examples. Avoid hype.'"
+      },
+      task: {
+        ru: "Составьте промпт для генерации email-рассылки о новом продукте. Укажите все необходимые компоненты.",
+        en: "Craft a prompt for generating a product launch email newsletter. Include all necessary components."
+      },
+      check: (a) => (/роль|role|задач|task|контекст|context|формат|format|ограничен|constraint|тональност|tone|длин|length|аудитори|audience/i.test(a)),
+      hint: {
+        ru: "Структура: Роль → Задача → Целевая аудитория → Тон → Формат → Длина → Ограничения → Примеры",
+        en: "Structure: Role → Task → Target audience → Tone → Format → Length → Constraints → Examples"
+      },
+      qwenFormat: '{"type": "qwen_editor_prompt.json", "components": ["role", "task", "audience", "tone", "format", "constraints"]}'
+    },
+    { 
+      day: 3, 
+      title: { ru: "🔍 Фактчекинг без интернета: чек-листы и логика", en: "🔍 Offline fact-checking: checklists and logic" },
+      content: {
+        ru: "Фактчекинг ИИ-контента без интернета требует системного подхода: логическая проверка, внутренние противоречия, здравый смысл, известные факты.",
+        en: "Fact-checking AI content offline requires a systematic approach: logical checking, internal contradictions, common sense, known facts."
+      },
+      case: {
+        ru: "ИИ-текст утверждает: «Венера — самая горячая планета, ближе всех к Солнцу». Проверка: Венера действительно самая горячая (из-за атмосферы), но НЕ ближе всех к Солнцу (это Меркурий). Частичная ошибка.",
+        en: "AI text claims: 'Venus is the hottest planet, closest to the Sun'. Check: Venus IS the hottest (due to atmosphere), but NOT closest to the Sun (that's Mercury). Partial error."
+      },
+      task: {
+        ru: "Какой метод фактчекинга вы бы использовали, если нет доступа к интернету? Опишите пошагово.",
+        en: "What fact-checking method would you use without internet access? Describe step by step."
+      },
+      check: (a) => (/логик|противореч|здравый|cross.check|internal|contradiction|common.sense|известн|known/i.test(a)) && (/пошаг|step|метод|method/i.test(a)),
+      hint: {
+        ru: "1) Проверить внутренние противоречия 2) Сопоставить с известными фактами 3) Логическая проверка причинно-следственных связей 4) Пометить сомнительные утверждения",
+        en: "1) Check internal contradictions 2) Compare with known facts 3) Logical causality check 4) Flag doubtful claims"
+      },
+      qwenFormat: '{"type": "qwen_factcheck_report.md", "method": "offline_logic_check", "verdict": "partial_error"}'
+    },
+    { 
+      day: 4, 
+      title: { ru: "🎨 Стиль и тон: адаптация под бренд и аудиторию", en: "🎨 Style & Tone: brand and audience adaptation" },
+      content: {
+        ru: "ИИ часто выдаёт «средний» тон. Редактор адаптирует: формальный ↔ дружеский, B2B ↔ B2C, технический ↔ популярный. Ключ — понимание аудитории.",
+        en: "AI often outputs 'average' tone. Editor adapts: formal ↔ friendly, B2B ↔ B2C, technical ↔ popular. Key: understanding the audience."
+      },
+      case: {
+        ru: "ИИ написал описание продукта: «Наш революционный AI-инструмент трансформирует вашу workflow». Для IT-аудитории — слишком маркетингово. Для массового рынка — слишком технично.",
+        en: "AI wrote product description: 'Our revolutionary AI tool transforms your workflow'. For IT audience — too marketing-heavy. For mass market — too technical."
+      },
+      task: {
+        ru: "Перепишите этот текст для двух разных аудиторий: 1) Технические специалисты 2) Обычные пользователи",
+        en: "Rewrite this text for two different audiences: 1) Technical specialists 2) Regular users"
+      },
+      check: (a) => (/аудитори|audience|тон|tone|стиль|style|перепис|rewrite|адапт|adapt|формальн|formal|дружеск|friendly/i.test(a)),
+      hint: {
+        ru: "Для IT: конкретные метрики, терминология, технические детали. Для массового: простые аналогии, выгоды, минимум жаргона.",
+        en: "For IT: specific metrics, terminology, technical details. For mass market: simple analogies, benefits, minimal jargon."
+      },
+      qwenFormat: '{"type": "qwen_style_adaptation.json", "original_tone": "generic", "adapted_tones": ["technical", "consumer"]}'
+    },
+    { 
+      day: 5, 
+      title: { ru: "⚖️ Этика и безопасность: предвзятость и манипуляции", en: "⚖️ Ethics & Safety: bias and manipulation" },
+      content: {
+        ru: "ИИ может воспроизводить предвзятость из обучающих данных. Редактор выявляет: гендерные стереотипы, расовые предубеждения, манипулятивные формулировки, скрытую рекламу.",
+        en: "AI can reproduce bias from training data. Editor identifies: gender stereotypes, racial bias, manipulative phrasing, hidden advertising."
+      },
+      case: {
+        ru: "ИИ сгенерировал: «Программисты обычно мужчины, поэтому тестирование проводили с мужской выборкой». Это гендерный стереотип + методологическая ошибка.",
+        en: "AI generated: 'Programmers are usually men, so testing was done with a male sample'. This is a gender stereotype + methodological error."
+      },
+      task: {
+        ru: "Назовите 4 типа этических проблем в ИИ-контенте и способы их обнаружения.",
+        en: "Name 4 types of ethical issues in AI content and methods to detect them."
+      },
+      check: (a) => (/стереотип|предубежд|манипуляц|bias|stereotype|manipul|этик|ethic|гендерн|gender|расов|racial/i.test(a)),
+      hint: {
+        ru: "1) Гендерные/расовые стереотипы 2) Манипулятивные формулировки 3) Скрытая реклама 4) Дискриминационный язык. Метод: чек-лист по Tongyi AI Principles.",
+        en: "1) Gender/racial stereotypes 2) Manipulative phrasing 3) Hidden advertising 4) Discriminatory language. Method: Tongyi AI Principles checklist."
+      },
+      qwenFormat: '{"type": "qwen_safety_audit.csv", "flags": ["bias", "stereotype", "manipulation"], "compliance": "tongyi_v2"}'
+    },
+    { 
+      day: 6, 
+      title: { ru: "🌍 Локализация: культурные особенности и идиомы", en: "🌍 Localization: cultural nuances and idioms" },
+      content: {
+        ru: "Прямой перевод ИИ-текста часто терпит неудачу. Редактор адаптирует: идиомы, культурные отсылки, юмор, табу, форматы дат и валют.",
+        en: "Direct AI text translation often fails. Editor adapts: idioms, cultural references, humor, taboos, date and currency formats."
+      },
+      case: {
+        ru: "ИИ перевёл: «Break a leg!» → «Сломай ногу!». Правильная локализация для RU: «Ни пуха, ни пера!». ИИ не понимает культурный контекст.",
+        en: "AI translated: 'Break a leg!' → 'Break a leg!' (literal). Correct RU localization: 'Ни пуха, ни пера!' AI doesn't understand cultural context."
+      },
+      task: {
+        ru: "Опишите процесс локализации ИИ-текста: какие элементы нужно адаптировать в первую очередь?",
+        en: "Describe the AI text localization process: which elements need adaptation first?"
+      },
+      check: (a) => (/идиом|idiom|культур|cultural|контекст|context|юмор|humor|табу|taboo|формат|format|валют|currency/i.test(a)),
+      hint: {
+        ru: "Приоритеты: 1) Идиомы и пословицы 2) Культурные отсылки 3) Юмор 4) Форматы (даты, деньги) 5) Табу и чувствительные темы",
+        en: "Priorities: 1) Idioms and proverbs 2) Cultural references 3) Humor 4) Formats (dates, money) 5) Taboos and sensitive topics"
+      },
+      qwenFormat: '{"type": "qwen_localization_report.md", "adapted_elements": ["idioms", "references", "formats", "taboos"]}'
+    },
+    { 
+      day: 7, 
+      title: { ru: "📊 Форматы отчётности: JSON, Markdown, Qwen-шаблоны", en: "📊 Reporting formats: JSON, Markdown, Qwen templates" },
+      content: {
+        ru: "Стандартизированная отчётность критична для интеграции в пайплайны Qwen. Каждый тип проверки имеет свой формат: промпт, фактчек, стиль, безопасность.",
+        en: "Standardized reporting is critical for Qwen pipeline integration. Each review type has its format: prompt, factcheck, style, safety."
+      },
+      case: {
+        ru: "Ваш отчёт должен содержать: тип проверки, вердикт, уверенность (0-1), обоснование, рекомендации. Формат: JSON для автоматической обработки, Markdown для человека.",
+        en: "Your report should contain: review type, verdict, confidence (0-1), justification, recommendations. Format: JSON for automated processing, Markdown for humans."
+      },
+      task: {
+        ru: "Создайте структуру отчёта для проверки ИИ-текста: какие поля обязательны, какие опциональны?",
+        en: "Create a report structure for AI text review: which fields are mandatory, which are optional?"
+      },
+      check: (a) => (/тип|type|вердикт|verdict|уверенн|confidence|обоснован|justific|рекомендац|recommend|json|markdown/i.test(a)),
+      hint: {
+        ru: "Обязательные: type, verdict, confidence, justification. Опциональные: severity, suggestions, examples, reviewer_notes, timestamp.",
+        en: "Mandatory: type, verdict, confidence, justification. Optional: severity, suggestions, examples, reviewer_notes, timestamp."
+      },
+      qwenFormat: '{"type": "qwen_editor_report.json", "mandatory": ["type","verdict","confidence","justification"], "optional": ["severity","suggestions","examples"]}'
+    },
+    { 
+      day: 8, 
+      title: { ru: "🔄 RLHF-разметка: оценка качества и сравнение ответов", en: "🔄 RLHF labeling: quality scoring and response comparison" },
+      content: {
+        ru: "RLHF (Reinforcement Learning from Human Feedback) — ключевой процесс обучения Qwen. Редактор оценивает: точность, полезность, безопасность, стиль двух ответов и выбирает лучший.",
+        en: "RLHF (Reinforcement Learning from Human Feedback) is key to Qwen training. Editor evaluates: accuracy, helpfulness, safety, style of two responses and picks the best."
+      },
+      case: {
+        ru: "Запрос: «Объясни квантовую физику». Ответ A: слишком технический. Ответ B: слишком упрощённый. Идеальный: баланс точности и доступности.",
+        en: "Query: 'Explain quantum physics'. Response A: too technical. Response B: too simplified. Ideal: balance of accuracy and accessibility."
+      },
+      task: {
+        ru: "Опишите критерии сравнения двух ИИ-ответов. Как вы аргументируете выбор лучшего?",
+        en: "Describe criteria for comparing two AI responses. How do you justify choosing the better one?"
+      },
+      check: (a) => (/критерий|criteria|точност|accurac|полезн|helpful|безопасн|safe|стиль|style|аргумент|argu|обоснован|justif/i.test(a)),
+      hint: {
+        ru: "Критерии: точность → полнота → безопасность → стиль → соответствие запросу. Аргументация: конкретные примеры из текста.",
+        en: "Criteria: accuracy → completeness → safety → style → query match. Justification: specific examples from the text."
+      },
+      qwenFormat: '{"type": "qwen_rlhf_pair.json", "criteria": ["accuracy","completeness","safety","style"], "verdict": "A>B"}'
+    },
+    { 
+      day: 9, 
+      title: { ru: "📁 Портфолио: 5 кейсов в форматах пайплайна Qwen", en: "📁 Portfolio: 5 cases in Qwen pipeline formats" },
+      content: {
+        ru: "Сборка готовых отчётов для подачи в Contributor Pipeline. Каждый кейс демонстрирует отдельный навык: промпт, фактчек, стиль, этика, RLHF.",
+        en: "Assembling ready reports for Contributor Pipeline submission. Each case demonstrates a separate skill: prompt, factcheck, style, ethics, RLHF."
+      },
+      case: {
+        ru: "Ваше портфолио: 1) Промпт-шаблон (qwen_editor_prompt.json) 2) Отчёт фактчека (qwen_factcheck_report.md) 3) Адаптация стиля (qwen_style_adaptation.json) 4) Аудит безопасности (qwen_safety_audit.csv) 5) RLHF-разметка (qwen_rlhf_pair.json)",
+        en: "Your portfolio: 1) Prompt template (qwen_editor_prompt.json) 2) Factcheck report (qwen_factcheck_report.md) 3) Style adaptation (qwen_style_adaptation.json) 4) Safety audit (qwen_safety_audit.csv) 5) RLHF labeling (qwen_rlhf_pair.json)"
+      },
+      task: {
+        ru: "Опишите структуру каждого кейса в портфолио: какие данные должны быть в каждом отчёте?",
+        en: "Describe each portfolio case structure: what data should each report contain?"
+      },
+      check: (a) => (/промпт|prompt|фактчек|factcheck|стиль|style|этик|ethic|rlhf|метаданн|metadata|вердикт|verdict/i.test(a)),
+      hint: {
+        ru: "Каждый кейс: metadata (id, type, date), input, analysis, verdict (0-1), justification, recommendations, qwen_format_output.",
+        en: "Each case: metadata (id, type, date), input, analysis, verdict (0-1), justification, recommendations, qwen_format_output."
+      },
+      qwenFormat: '{"type": "qwen_editor_portfolio.zip", "cases": 5, "formats": ["prompt","factcheck","style","safety","rlhf"]}'
+    },
+    { 
+      day: 10, 
+      title: { ru: "🏆 ФИНАЛЬНЫЙ ЭКЗАМЕН", en: "🏆 FINAL EXAM" }, 
+      content: { 
+        ru: "Проверка всех навыков AI Editor. Нужно 10 из 10 для доступа к Contributor Pipeline.", 
+        en: "Testing all AI Editor skills. Need 10 out of 10 for Contributor Pipeline access." 
+      }, 
+      isExam: true,
+      examQuestions: [
+        { q: { ru: "ИИ-редактор должен полностью переписывать текст, сгенерированный ИИ.", en: "AI Editor should completely rewrite AI-generated text." }, correct: false, expl: { ru: "Редактор улучшает, проверяет и адаптирует, а не переписывает с нуля.", en: "Editor improves, checks and adapts, not rewrites from scratch." } },
+        { q: { ru: "Хороший промпт включает роль, задачу, контекст, формат и ограничения.", en: "A good prompt includes role, task, context, format and constraints." }, correct: true, expl: { ru: "Все 5 компонентов критичны для точного вывода.", en: "All 5 components are critical for accurate output." } },
+        { q: { ru: "Фактчекинг без интернета невозможен.", en: "Fact-checking without internet is impossible." }, correct: false, expl: { ru: "Используются логика, внутренние противоречия, известные факты.", en: "Logic, internal contradictions, known facts are used." } },
+        { q: { ru: "Тон текста не влияет на восприятие аудиторией.", en: "Text tone doesn't affect audience perception." }, correct: false, expl: { ru: "Тон критичен: формальный, дружеский, технический — разное восприятие.", en: "Tone is critical: formal, friendly, technical — different perception." } },
+        { q: { ru: "ИИ может воспроизводить предвзятость из обучающих данных.", en: "AI can reproduce bias from training data." }, correct: true, expl: { ru: "Это основная этическая проблема генеративных моделей.", en: "This is the main ethical issue of generative models." } },
+        { q: { ru: "Прямой перевод идиом ИИ всегда точен.", en: "Direct AI translation of idioms is always accurate." }, correct: false, expl: { ru: "Идиомы требуют культурной адаптации, а не буквального перевода.", en: "Idioms require cultural adaptation, not literal translation." } },
+        { q: { ru: "JSON — рекомендуемый формат для автоматической обработки в Qwen.", en: "JSON is the recommended format for automated processing in Qwen." }, correct: true, expl: { ru: "JSON обеспечивает структурированность и машинную читаемость.", en: "JSON ensures structure and machine readability." } },
+        { q: { ru: "RLHF требует оценки только точности ответа.", en: "RLHF requires evaluating only response accuracy." }, correct: false, expl: { ru: "Оцениваются: точность, полезность, безопасность, стиль.", en: "Evaluated: accuracy, helpfulness, safety, style." } },
+        { q: { ru: "Портфолио AI Editor должно содержать 5 кейсов в разных форматах.", en: "AI Editor portfolio should contain 5 cases in different formats." }, correct: true, expl: { ru: "prompt, factcheck, style, safety, rlhf — полная компетенция.", en: "prompt, factcheck, style, safety, rlhf — full competency." } },
+        { q: { ru: "ИИ-редактор не влияет на качество вывода Qwen.", en: "AI Editor doesn't affect Qwen output quality." }, correct: false, expl: { ru: "Напрямую влияет через промпты, фактчекинг и RLHF-разметку.", en: "Directly affects through prompts, factchecking and RLHF labeling." } }
+      ]
+    }
+  ];
+
+  // ========== 🛠️ TOOLS DATA ==========
+  const FACT_CHECK_CHALLENGES = [
+    { 
+      claim: { ru: "Луна — единственный естественный спутник Земли", en: "The Moon is Earth's only natural satellite" },
+      verdict: "verified",
+      explanation: { ru: "Подтверждено астрономическими данными", en: "Confirmed by astronomical data" }
+    },
+    { 
+      claim: { ru: "ИИ может полностью заменить редакторов к 2026 году", en: "AI can completely replace editors by 2026" },
+      verdict: "suspicious",
+      explanation: { ru: "Прогноз, не факт; зависит от множества переменных", en: "Prediction, not fact; depends on many variables" }
+    },
+    { 
+      claim: { ru: "Qwen разработан компанией Google", en: "Qwen was developed by Google" },
+      verdict: "false",
+      explanation: { ru: "Qwen разработан Alibaba Group (Tongyi Lab)", en: "Qwen was developed by Alibaba Group (Tongyi Lab)" }
+    },
+    {
+      claim: { ru: "Все языки программирования используют английский синтаксис", en: "All programming languages use English syntax" },
+      verdict: "suspicious",
+      explanation: { ru: "Большинство, но не все (например, APL использует специальные символы)", en: "Most, but not all (e.g., APL uses special symbols)" }
+    },
+    {
+      claim: { ru: "Интернет был изобретён в 1969 году", en: "The Internet was invented in 1969" },
+      verdict: "verified",
+      explanation: { ru: "ARPANET — первый прототип — запущен в 1969", en: "ARPANET — the first prototype — launched in 1969" }
+    }
+  ];
+
+  const RLHF_CHALLENGES = [
+    {
+      query: { ru: "Объясни, что такое машинное обучение", en: "Explain what machine learning is" },
+      responseA: { 
+        ru: "Машинное обучение — это подмножество ИИ, где алгоритмы учатся на данных без явного программирования. Пример: рекомендательная система Netflix.",
+        en: "Machine learning is an AI subset where algorithms learn from data without explicit programming. Example: Netflix recommendation system."
+      },
+      responseB: {
+        ru: "Машинное обучение — это когда компьютер думает как человек и решает все задачи лучше нас.",
+        en: "Machine learning is when a computer thinks like a human and solves all tasks better than us."
+      },
+      better: "A",
+      explanation: { 
+        ru: "A: точное определение + пример. B: антропоморфизм + преувеличение.",
+        en: "A: accurate definition + example. B: anthropomorphism + exaggeration."
+      }
+    },
+    {
+      query: { ru: "Напиши рецепт блинов", en: "Write a pancake recipe" },
+      responseA: {
+        ru: "Смешай 200г муки, 2 яйца, 400мл молока. Жарь на сковороде.",
+        en: "Mix 200g flour, 2 eggs, 400ml milk. Fry in a pan."
+      },
+      responseB: {
+        ru: "Ингредиенты: 200г муки, 2 яйца, 400мл молока, щепотка соли, 2 ст.л. сахара, 2 ст.л. масла. Способ: 1) Смешать сухие 2) Добавить яйца и молоко 3) Жарить на среднем огне по 2 мин с каждой стороны. Подавать со сметаной или вареньем.",
+        en: "Ingredients: 200g flour, 2 eggs, 400ml milk, pinch of salt, 2 tbsp sugar, 2 tbsp oil. Method: 1) Mix dry 2) Add eggs and milk 3) Fry on medium heat 2 min each side. Serve with sour cream or jam."
+      },
+      better: "B",
+      explanation: {
+        ru: "B: полный рецепт с пропорциями, шагами и подачей. A: слишком краткий.",
+        en: "B: complete recipe with proportions, steps and serving. A: too brief."
+      }
+    }
+  ];
+
+  // ========== 🌐 i18n ==========
+  const i18n = {
+    ru: {
+      hero_subtitle: "Qwen (Tongyi Qianwen) • 100% Offline • 10 дней",
+      qwen_title: "Anti-AI Qwen Academy: AI Editor Specialist",
+      guide_btn: "План 10 дней",
+      concept1: "✍️ Prompt Eng", concept2: "🔍 Fact Check", concept3: "🎨 Style Adapt", concept4: "⚖️ Ethics", concept5: "🌍 Localization", concept6: "📊 JSON Formats",
+      tab_course: "🎓 Обучение", tab_tools: "🛠️ Инструменты", tab_library: "📚 Библиотека", tab_progress: "📅 Прогресс",
+      cert_conditions: "🏆 УСЛОВИЯ СЕРТИФИКАТА",
+      cond1_sub: "AI Editing + Qwen форматы", cond2_sub: "Без ошибок", cond3: "Портфолио", cond3_sub: "5 кейсов в Qwen-форматах",
+      cert_warning: "⚠️ Идеальный результат → доступ к Contributor Pipeline",
+      progress_title: "📊 Прогресс", lessons_done: "Уроков пройдено",
+      reset_btn: "🔄 Сбросить", reset_warning: "⚠️ Все данные будут удалены",
+      cert_heading: "🎓 СЕРТИФИКАТ", cert_course: "Курс: ",
+      cert_confirms: "Настоящим подтверждается, что",
+      cert_who: "Сертифицированный AI Editor / Neurocopywriter Specialist",
+      cert_completed: "успешно завершил курс редактирования и верификации ИИ-контента для пайплайнов Qwen",
+      cert_issuer: "Issuer:", cert_pipeline: "Pipeline:", cert_compliance: "Compliance:", cert_date_label: "Дата:",
+      cert_download: "💾 JSON", cert_qwen_export: "📤 Qwen Format", cert_print: "🖨️ Print",
+      cert_badge: "Qwen AI Editor Specialist", cert_practice: "🛠️ Tools",
+      cert_validate_title: "🔍 Проверка сертификата", cert_validate_btn: "✅ Check",
+      cert_security: "🔒 Offline • SHA-256 • Qwen-compatible",
+      tools_title: "🛠️ Инструменты ИИ-редактора", tools_subtitle: "Интерактивные инструменты для практики",
+      prompt_builder: "Конструктор промптов", prompt_desc: "Составляйте эффективные промпты для Qwen",
+      preview_btn: "👁️ Предпросмотр формата Qwen",
+      factcheck_title: "Симулятор фактчекинга", factcheck_desc: "Тренируйтесь проверять утверждения без интернета",
+      new_factcheck: "🔄 Новое задание",
+      rlhf_title: "Сравнение ответов (RLHF)", rlhf_desc: "Сравнивайте два ИИ-ответа и аргументируйте выбор",
+      new_rlhf: "🔄 Новое сравнение",
+      library_title: "📚 Библиотека AI Editor", library_subtitle: "Пайплайны, форматы данных, инструменты, материалы",
+      why_editor_title: "🎯 Почему Qwen нуждается в AI-редакторах",
+      why_editor_desc: "Qwen генерирует огромный объём контента. AI-редакторы обеспечивают качество, точность и этичность до того, как контент достигнет пользователей.",
+      pipe1_desc: "Редактура ИИ-текста для ясности, точности и голоса бренда",
+      pipe2_desc: "Перекрёстная проверка утверждений в ИИ-выводах",
+      pipe3_desc: "Адаптация тона ИИ-контента под разные аудитории",
+      pipe4_desc: "Выявление предвзятости, манипуляций и нарушений политик",
+      pipe5_desc: "Оценка и сравнение ответов модели для обучения",
+      warning_title: "💡 Важно:",
+      why_warning: "AI-редакторы не пишут код, но напрямую влияют на качество контента, безопасность и доверие пользователей. Qwen принимает таких специалистов через пайплайны контент-ревью, RLHF-разметки и оценки безопасности.",
+      skills_section: "🛠️ Навыки выпускника",
+      hard_skills: "🔹 Hard Skills", soft_skills: "🔹 Soft Skills",
+      hard1: "Промпт-инженерия для моделей Qwen", hard2: "Методология офлайн-фактчекинга",
+      hard3: "Адаптация стиля и тона", hard4: "RLHF-оценка и сравнение ответов",
+      hard5: "JSON/Markdown отчётность (Qwen-совместимая)",
+      soft1: "Критическое чтение и анализ", soft2: "Культурная чувствительность и локализация",
+      soft3: "Этическое суждение в контент-ревью", soft4: "Чёткая документация для ML-команд",
+      soft5: "Compliance mindset: Tongyi AI Principles",
+      jobs_title: "💼 Где работают AI-редакторы?",
+      salary_info: "Стартовые зарплаты: $500-2000/мес • Удалённо • Гибкий график",
+      progress_path: "📈 Путь к AI Editor Specialist",
+      days1_3_desc: "Роль AI-редактора, промпт-инженерия, основы фактчекинга",
+      days4_6_desc: "Адаптация стиля, этика, локализация",
+      days7_8_desc: "Форматы отчётности, RLHF-разметка",
+      day9_desc: "Портфолио в Qwen-форматах",
+      day10_desc: "ФИНАЛЬНЫЙ ЭКЗАМЕН (10/10)",
+      output_title: "📦 Форматы отчётности Qwen Editor",
+      support_title: "🤝 ПОДДЕРЖАТЬ ПРОЕКТ 💙", support_desc: "Приложение бесплатное. Было и останется.<br>Поддержка разработки:",
+      copy_phone: "📋 Copy", catalog_link: "🌟 Каталог Anti-AI Shield",
+      footer: "Anti-AI Qwen Academy | 100% Offline | AI Editor / Neurocopywriter",
+      guide_title: "🚀 План 10 дней", guide_start: "Начинаю!",
+      cert_valid: "✅ Сертификат действителен", cert_invalid: "❌ Сертификат не найден",
+      voice_on: "Озвучка включена", voice_off: "Озвучка выключена", lang_changed: "Язык изменён",
+      progress_reset: "Прогресс сброшен", cert_downloaded: "Сертификат скачан", portfolio_downloaded: "Qwen Portfolio скачано",
+      print_cert: "Печать...", copied: "Скопировано",
+      too_short: "⚠️ Слишком кратко! Минимум 10 символов.",
+      correct: "✅ Верно! Урок завершён!", incorrect: "❌ Не совсем так. Изучите подсказку.",
+      exam_perfect: "🎉 ИДЕАЛЬНО! 10 из 10", exam_failed: "😔 Не сдано. {score}/10. Нужно 10.",
+      cert_locked: "Сначала получите сертификат (10/10).", cert_imported: "✅ Сертификат загружен!",
+      cert_bad_sig: "❌ Неверная подпись.", cert_file_error: "❌ Ошибка файла.",
+      reset_confirm: "⚠️ Сбросить весь прогресс?", reset_done: "✅ Сброшено!",
+      day_label: "День", task_label: "Задание", answer_placeholder: "Ваш ответ...",
+      check_btn: "Проверить", hint_btn: "Подсказка", answer_btn: "Ответ",
+      locked_msg: "Пройдите предыдущий урок", final_exam: "ФИНАЛЬНЫЙ ЭКЗАМЕН",
+      exam_instr: "10 вопросов. Нужно <b>10 правильных</b> для доступа к Contributor Pipeline.",
+      question: "Вопрос", true_opt: "Верно", false_opt: "Неверно",
+      submit_exam: "Сдать экзамен", out_of: "из", cert_unlocked: "Доступ к Contributor Pipeline разблокирован ↓",
+      retry_btn: "Ещё раз", too_short_practice: "Слишком кратко",
+      practice_correct: "Верно! Вы нашли ключевую проблему.",
+      practice_incorrect: "Попробуйте ещё раз. Ищите артефакты, рассинхрон или признаки синтеза.",
+      invalid_format: "Неверный формат (QWEN-EDITOR-XXXXXX)", issued_label: "Выдан",
+      verified: "✅ Проверено", suspicious: "⚠️ Сомнительно", false_claim: "❌ Ошибка",
+      select_better: "Выберите лучший ответ:", justify: "Обоснуйте выбор:",
+      response_a: "Ответ A", response_b: "Ответ B"
+    },
+    en: {
+      hero_subtitle: "Qwen (Tongyi Qianwen) • 100% Offline • 10 days",
+      qwen_title: "Anti-AI Qwen Academy: AI Editor Specialist",
+      guide_btn: "10-Day Plan",
+      concept1: "✍️ Prompt Eng", concept2: "🔍 Fact Check", concept3: "🎨 Style Adapt", concept4: "⚖️ Ethics", concept5: "🌍 Localization", concept6: "📊 JSON Formats",
+      tab_course: "🎓 Course", tab_tools: "🛠️ Tools", tab_library: "📚 Library", tab_progress: "📅 Progress",
+      cert_conditions: "🏆 CERTIFICATE REQUIREMENTS",
+      cond1_sub: "AI Editing + Qwen formats", cond2_sub: "No mistakes", cond3: "Portfolio", cond3_sub: "5 cases in Qwen formats",
+      cert_warning: "⚠️ Perfect results → Contributor Pipeline access",
+      progress_title: "📊 Progress", lessons_done: "Lessons completed",
+      reset_btn: "🔄 Reset", reset_warning: "⚠️ All data will be deleted",
+      cert_heading: "🎓 CERTIFICATE", cert_course: "Course: ",
+      cert_confirms: "This certifies that",
+      cert_who: "Certified AI Editor / Neurocopywriter Specialist",
+      cert_completed: "has successfully completed the AI content editing and verification course for Qwen pipelines",
+      cert_issuer: "Issuer:", cert_pipeline: "Pipeline:", cert_compliance: "Compliance:", cert_date_label: "Date:",
+      cert_download: "💾 JSON", cert_qwen_export: "📤 Qwen Format", cert_print: "🖨️ Print",
+      cert_badge: "Qwen AI Editor Specialist", cert_practice: "🛠️ Tools",
+      cert_validate_title: "🔍 Verify Certificate", cert_validate_btn: "✅ Check",
+      cert_security: "🔒 Offline • SHA-256 • Qwen-compatible",
+      tools_title: "🛠️ AI Editor Toolkit", tools_subtitle: "Interactive tools for practicing AI editing skills",
+      prompt_builder: "Prompt Builder", prompt_desc: "Craft effective prompts for Qwen",
+      preview_btn: "👁️ Preview Qwen Format",
+      factcheck_title: "Fact-Check Simulator", factcheck_desc: "Practice verifying claims offline",
+      new_factcheck: "🔄 New Challenge",
+      rlhf_title: "Response Comparator (RLHF)", rlhf_desc: "Compare two AI responses and justify your choice",
+      new_rlhf: "🔄 New Comparison",
+      library_title: "📚 AI Editor Specialist Library", library_subtitle: "Pipelines, data formats, tools, materials",
+      why_editor_title: "🎯 Why Qwen needs AI Editors",
+      why_editor_desc: "Qwen generates vast amounts of content. AI Editors ensure quality, accuracy, and ethical compliance before content reaches users.",
+      pipe1_desc: "Editing AI-generated text for clarity, accuracy, and brand voice",
+      pipe2_desc: "Cross-checking claims in AI outputs against known facts",
+      pipe3_desc: "Adapting AI content tone for different audiences and platforms",
+      pipe4_desc: "Identifying bias, manipulation, and policy violations",
+      pipe5_desc: "Scoring and comparing model responses for alignment training",
+      warning_title: "💡 Important:",
+      why_warning: "AI Editors don't write code, but directly influence content quality, safety, and user trust. Qwen accepts them via content review, RLHF annotation, and safety evaluation pipelines.",
+      skills_section: "🛠️ Graduate Skills",
+      hard_skills: "🔹 Hard Skills", soft_skills: "🔹 Soft Skills",
+      hard1: "Prompt engineering for Qwen models", hard2: "Offline fact-checking methodology",
+      hard3: "Style and tone adaptation", hard4: "RLHF response scoring and comparison",
+      hard5: "JSON/Markdown reporting (Qwen-compatible)",
+      soft1: "Critical reading and analysis", soft2: "Cultural sensitivity and localization",
+      soft3: "Ethical judgment in content review", soft4: "Clear documentation for ML teams",
+      soft5: "Compliance mindset: Tongyi AI Principles",
+      jobs_title: "💼 Where do AI Editors work?",
+      salary_info: "Starting salaries: $500-2000/mo • Remote • Flexible",
+      progress_path: "📈 Path to AI Editor Specialist",
+      days1_3_desc: "AI editor role, prompt engineering, fact-checking basics",
+      days4_6_desc: "Style adaptation, ethics, localization",
+      days7_8_desc: "Reporting formats, RLHF annotation",
+      day9_desc: "Portfolio in Qwen formats",
+      day10_desc: "FINAL EXAM (10/10)",
+      output_title: "📦 Qwen Editor Reporting Formats",
+      support_title: "🤝 SUPPORT THE PROJECT 💙", support_desc: "App is free. Always will be.<br>Support development:",
+      copy_phone: "📋 Copy", catalog_link: "🌟 Anti-AI Shield Catalog",
+      footer: "Anti-AI Qwen Academy | 100% Offline | AI Editor / Neurocopywriter",
+      guide_title: "🚀 10-Day Plan", guide_start: "Let's go!",
+      cert_valid: "✅ Certificate is valid", cert_invalid: "❌ Certificate not found",
+      voice_on: "Voice enabled", voice_off: "Voice disabled", lang_changed: "Language changed",
+      progress_reset: "Progress reset", cert_downloaded: "Certificate downloaded", portfolio_downloaded: "Qwen Portfolio downloaded",
+      print_cert: "Printing...", copied: "Copied",
+      too_short: "⚠️ Too short! Minimum 10 characters.",
+      correct: "✅ Correct! Lesson completed!", incorrect: "❌ Not quite. Check the hint.",
+      exam_perfect: "🎉 PERFECT! 10 out of 10", exam_failed: "😔 Not passed. {score}/10. Need 10.",
+      cert_locked: "Get certificate first (10/10).", cert_imported: "✅ Certificate imported!",
+      cert_bad_sig: "❌ Invalid signature.", cert_file_error: "❌ File error.",
+      reset_confirm: "⚠️ Reset all progress?", reset_done: "✅ Reset!",
+      day_label: "Day", task_label: "Task", answer_placeholder: "Your answer...",
+      check_btn: "Check", hint_btn: "Hint", answer_btn: "Answer",
+      locked_msg: "Complete previous lesson first", final_exam: "FINAL EXAM",
+      exam_instr: "10 questions. Need <b>10 correct</b> for Contributor Pipeline access.",
+      question: "Question", true_opt: "True", false_opt: "False",
+      submit_exam: "Submit Exam", out_of: "out of", cert_unlocked: "Contributor Pipeline access unlocked ↓",
+      retry_btn: "Try again", too_short_practice: "Too short",
+      practice_correct: "Correct! You found the key issue.",
+      practice_incorrect: "Try again. Look for artifacts, desync or synthesis signs.",
+      invalid_format: "Invalid format (QWEN-EDITOR-XXXXXX)", issued_label: "Issued",
+      verified: "✅ Verified", suspicious: "⚠️ Suspicious", false_claim: "❌ False",
+      select_better: "Select the better response:", justify: "Justify your choice:",
+      response_a: "Response A", response_b: "Response B"
+    }
+  };
+
+  // ========== 🧠 STATE ==========
+  let currentLang = localStorage.getItem('qwen_df_lang') || 'ru';
+  let courseProgress = (() => { try { const s = JSON.parse(localStorage.getItem('qwen_df_progress')); return Array.isArray(s) && s.length === 10 ? s : Array(10).fill(false); } catch(e) { return Array(10).fill(false); } })();
+  let examScore = parseInt(localStorage.getItem('qwen_df_exam')) || 0;
+  let certData = JSON.parse(localStorage.getItem('qwen_df_certificate')) || null;
+  let voiceEnabled = localStorage.getItem('qwen_df_voice') === 'true';
+  
+  const synth = window.speechSynthesis;
+  let voices = [], currentVoice = null, lastSpeakTime = 0, voicesLoaded = false, voiceRetryCount = 0;
+
+  function saveState() {
+    try {
+      localStorage.setItem('qwen_df_lang', currentLang);
+      localStorage.setItem('qwen_df_progress', JSON.stringify(courseProgress));
+      localStorage.setItem('qwen_df_exam', examScore.toString());
+      localStorage.setItem('qwen_df_certificate', JSON.stringify(certData));
+      localStorage.setItem('qwen_df_voice', voiceEnabled.toString());
+    } catch(e) { console.warn('Storage save failed:', e); }
+  }
+
+  // ========== 🔊 SPEECH SYNTHESIS ==========
+  function isSpeechSupported() { 
+    return typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  }
+  
+  function loadVoicesWithRetry() {
+    if (!isSpeechSupported() || !synth) return;
+    try {
+      voices = synth.getVoices();
+      if (voices.length > 0) { voicesLoaded = true; selectVoice(); } 
+      else if (voiceRetryCount < 5) { voiceRetryCount++; setTimeout(loadVoicesWithRetry, 500 * voiceRetryCount); }
+    } catch(e) { console.warn('Voice load error:', e); }
+  }
+  
+  function selectVoice() { 
+    if (!voices.length) return;
+    const p = currentLang === 'ru' ? 'ru' : 'en'; 
+    currentVoice = voices.find(v => v.lang === `${p}-${p.toUpperCase()}`) || voices.find(v => v.lang.startsWith(p)) || voices.find(v => v.default) || voices[0]; 
+  }
+  
+  if (synth?.onvoiceschanged !== undefined) {
+    synth.onvoiceschanged = () => { voices = synth.getVoices(); if (voices.length > 0) { voicesLoaded = true; selectVoice(); } };
+  }
+  loadVoicesWithRetry();
+  setTimeout(loadVoicesWithRetry, 1000);
+  setTimeout(loadVoicesWithRetry, 3000);
+
+  function speak(text, priority = false) {
+    if (!voiceEnabled || !isSpeechSupported() || !text) return;
+    if (!voicesLoaded && synth) { const v = synth.getVoices(); if (v.length > 0) { voices = v; voicesLoaded = true; selectVoice(); } }
+    if (!voicesLoaded) return;
+    const now = Date.now(); if (now - lastSpeakTime < 800 && !priority) return; lastSpeakTime = now;
+    if (priority && synth) { try { synth.cancel(); } catch(e) {} }
+    try { const u = new SpeechSynthesisUtterance(text); u.voice = currentVoice; u.rate = 0.95; u.lang = currentLang === 'ru' ? 'ru-RU' : 'en-US'; u.onerror = (e) => console.warn('Speech error:', e.error); if (synth) synth.speak(u); } catch(e) { console.warn('Speech speak error:', e); }
+  }
+  
+  function updateVoiceBtn() { const btn = document.getElementById('voiceBtn'); if (btn) { btn.textContent = voiceEnabled ? '🔊' : '🔇'; btn.classList.toggle('active', voiceEnabled); btn.setAttribute('aria-pressed', voiceEnabled); } }
+
+  // ========== 🎨 APP ==========
+  const app = {
+    t: function(key, params = {}) { let text = i18n[currentLang]?.[key] || i18n.ru[key] || key; Object.keys(params).forEach(p => text = text.replace(`{${p}}`, params[p])); return text; },
+    getBilingual: function(content) { if (typeof content === 'object' && content.ru && content.en) { return content[currentLang] || content.ru; } return content; },
+    
+    applyLang: function() {
+      document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (key && this.t(key)) el.textContent = this.t(key); });
+      document.getElementById('langBtn').textContent = currentLang === 'ru' ? '🌐 EN' : '🌐 RU';
+      const tm = { course: 'tab_course', tools: 'tab_tools', library: 'tab_library', progress: 'tab_progress' };
+      document.querySelectorAll('.tab-btn').forEach(b => { const k = tm[b.dataset.tab]; if (k && this.t(k)) b.textContent = this.t(k); });
+      updateVoiceBtn(); this.renderCourse(); this.renderTools(); speak(this.t('lang_changed'), true);
+    },
+    
+    toggleLang: function() { currentLang = currentLang === 'ru' ? 'en' : 'ru'; saveState(); this.applyLang(); },
+    switchTab: function(id) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelector(`.tab-btn[data-tab="${id}"]`).classList.add('active');
+    },
+    
+    _domCache: {},
+    _getEl: function(id) { if (!this._domCache[id]) this._domCache[id] = document.getElementById(id); return this._domCache[id]; },
+    
+    renderCourse: function() {
+      const c = this._getEl('lessonsContainer'); if (!c) return;
+      const completed = courseProgress.filter(x => x).length;
+      const pEl = this._getEl('courseProgress'), bEl = this._getEl('courseBar');
+      if (pEl) pEl.textContent = `${completed}/10`; if (bEl) bEl.style.width = `${completed * 10}%`;
+      
+      const certBox = this._getEl('certificateBox');
+      if (certBox) {
+        if (courseProgress[9] && examScore === 10) {
+          if (!certData) {
+            const id = 'QWEN-EDITOR-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            certData = { id, course: "Qwen AI Editor / Neurocopywriter Specialist", pipeline: "qwen-ai-editor-safety", version: "qwen-v2.5", date: new Date().toISOString().split('T')[0], issuer: "Anti-AI Qwen Academy", compliance: ["tongyi_safety_v2", "iso_iec_42001"], sig: generateCertSignature(id, "Anti-AI Qwen Academy"), skills: ["prompt_eng", "factcheck", "style_adapt", "ethics_review", "rlhf_annotation"] };
+            saveState();
+          }
+          certBox.style.display = 'block';
+          this._getEl('certIdDisplay').textContent = certData.id;
+          this._getEl('certDateDisplay').textContent = certData.date;
+          this._getEl('certCourseDisplay').textContent = certData.course;
+          this._getEl('certIssuerDisplay').textContent = certData.issuer;
+          this._getEl('certPipelineDisplay').textContent = certData.pipeline;
+          this._getEl('certComplianceDisplay').textContent = certData.compliance.join(', ');
+        } else { certBox.style.display = 'none'; }
+      }
+
+      const fragment = document.createDocumentFragment();
+      AI_EDITOR_COURSE.forEach((l, i) => {
+        const done = courseProgress[i], locked = i > 0 && !courseProgress[i-1] && !done, active = !locked && !done;
+        let st, sc; 
+        if (done) { st = currentLang === 'ru' ? '✅ ПРОЙДЕН' : '✅ DONE'; sc = 'completed'; } 
+        else if (active) { st = currentLang === 'ru' ? '🔓 АКТИВЕН' : '🔓 ACTIVE'; sc = 'active'; } 
+        else { st = currentLang === 'ru' ? '🔒 ЗАКРЫТ' : '🔒 LOCKED'; sc = 'locked'; }
+        const card = document.createElement('div');
+        card.className = `lesson-card ${done?'completed':active?'active':'locked'}`;
+        card.innerHTML = `<div class="lesson-header"><span class="lesson-title">${this.t('day_label')} ${l.day}: ${this.getBilingual(l.title)}</span><span class="lesson-status ${sc}">${st}</span></div>`;
+        if (!locked) {
+          card.innerHTML += `<div class="lesson-content">${this.getBilingual(l.content)}</div>`;
+          if (l.case) card.innerHTML += `<div class="case-text">${this.getBilingual(l.case)}</div>`;
+          if (l.qwenFormat) card.innerHTML += `<div class="qwen-format">📦 Qwen Format: ${l.qwenFormat}</div>`;
+          card.innerHTML += `<div class="lesson-task"><b>🎯 ${this.t('task_label')}:</b> ${this.getBilingual(l.task)}</div>
+            <textarea class="lesson-input" id="task-${i}" placeholder="${this.t('answer_placeholder')}" ${done?'disabled':''}></textarea>
+            <div class="btn-group">
+              <button class="btn secondary" onclick="app.checkLesson(${i})" ${done?'disabled':''}>✅ ${this.t('check_btn')}</button>
+              <button class="btn secondary" onclick="app.showHint(${i})">💡 ${this.t('hint_btn')}</button>
+              <button class="btn secondary" onclick="app.showAnswer(${i})">👁️ ${this.t('answer_btn')}</button>
+            </div>
+            <div id="hint-${i}" style="display:none; margin-top:8px; padding:10px; background:rgba(155,89,182,0.1); border-radius:6px; font-size:0.8rem; color:var(--editor);"></div>
+            <div id="answer-${i}" style="display:none; margin-top:8px; padding:10px; background:rgba(155,89,182,0.1); border-radius:6px; font-size:0.8rem; color:var(--editor);"></div>
+            <div class="lesson-feedback" id="feedback-${i}"></div>`;
+        } else { card.innerHTML += `<p style="color:var(--muted); font-size:0.85rem;">🔒 ${this.t('locked_msg')}</p>`; }
+        fragment.appendChild(card);
+      });
+      c.innerHTML = ''; c.appendChild(fragment);
+      if (courseProgress.slice(0,9).every(x=>x) && !courseProgress[9] && examScore !== 10) this.renderExam();
+    },
+    
+    checkLesson: function(i) {
+      const inp = this._getEl(`task-${i}`)?.value.trim(), fb = this._getEl(`feedback-${i}`);
+      if (!inp || !fb) return;
+      if (inp.length < 10) { fb.className='lesson-feedback error'; fb.style.display='block'; fb.innerHTML=`⚠️ <b>${this.t('too_short')}</b>`; return; }
+      const ok = AI_EDITOR_COURSE[i].check(inp); fb.style.display='block';
+      if (ok) { courseProgress[i]=true; saveState(); this.renderCourse(); fb.className='lesson-feedback success'; fb.innerHTML=this.t('correct'); speak(this.t('correct'), true); }
+      else { fb.className='lesson-feedback error'; fb.innerHTML=this.t('incorrect'); speak(this.t('incorrect'), true); }
+    },
+    
+    showHint: function(i) { const h=this._getEl(`hint-${i}`); if(!h)return; h.style.display=h.style.display==='none'?'block':'none'; h.textContent='💡 '+this.getBilingual(AI_EDITOR_COURSE[i].hint); },
+    showAnswer: function(i) { const a=this._getEl(`answer-${i}`); if(!a)return; a.style.display=a.style.display==='none'?'block':'none'; a.textContent='📚 '+this.t('answer_btn')+': '+this.getBilingual(AI_EDITOR_COURSE[i].hint); },
+    
+    renderExam: function() {
+      if (courseProgress[9]) return; const l=AI_EDITOR_COURSE[9], c=this._getEl('examContainer'); if(!c)return;
+      let h = `<div class="card" style="border-color:var(--editor); background:rgba(155,89,182,0.05); margin-top:16px;">
+        <h3>🏆 ${this.t('final_exam')}</h3><p style="margin:12px 0;">${this.t('exam_instr')}</p>`;
+      l.examQuestions.forEach((q, i) => {
+        h += `<div class="exam-question" id="eq${i}"><p style="margin-bottom:8px;"><b>${this.t('question')} ${i+1}:</b> ${this.getBilingual(q.q)}</p>
+          <div class="exam-options">
+            <label><input type="radio" name="exam${i}" value="true"> ✅ ${this.t('true_opt')}</label>
+            <label><input type="radio" name="exam${i}" value="false"> ❌ ${this.t('false_opt')}</label>
+          </div></div>`;
+      });
+      h += `<button class="btn" onclick="app.submitExam()" style="width:100%; margin-top:16px; font-size:1.1rem;">📝 ${this.t('submit_exam')}</button>
+        <div id="examResult" style="margin-top:16px; display:none;"></div></div>`;
+      c.innerHTML = h;
+    },
+    
+    submitExam: function() {
+      let correct = 0; AI_EDITOR_COURSE[9].examQuestions.forEach((q, i) => {
+        const sel = document.querySelector(`input[name="exam${i}"]:checked`);
+        if (sel) { const ok = (sel.value==='true') === q.correct; if(ok)correct++; const e=document.getElementById(`eq${i}`); if(e){e.classList.add('answered'); e.style.borderLeft=`3px solid ${ok?'var(--success)':'var(--danger)'}`; } }
+      });
+      examScore = correct; saveState();
+      const res = this._getEl('examResult'); res.style.display='block';
+      if (correct===10) {
+        courseProgress[9]=true; saveState(); this.renderCourse();
+        res.innerHTML = `<div style="text-align:center;padding:24px;background:rgba(46,204,113,0.15);border-radius:12px;border:2px solid var(--success);">
+          <h3 style="color:var(--success);font-size:1.8rem;">🎉 ${this.t('exam_perfect')}</h3>
+          <p style="font-size:1.3rem;margin:16px 0;"><b>10 ${this.t('out_of')} 10</b></p>
+          <p style="font-size:1.1rem;color:var(--gold);">🏆 ${this.t('cert_unlocked')}</p></div>`;
+        speak(this.t('exam_perfect'), true);
+      } else {
+        res.innerHTML = `<div style="text-align:center;padding:24px;background:rgba(231,76,60,0.15);border-radius:12px;border:2px solid var(--danger);">
+          <h3 style="color:var(--danger);font-size:1.5rem;">😔 ${this.t('exam_failed', {score:correct})}</h3>
+          <button class="btn secondary" onclick="app.renderExam()" style="margin-top:12px;">🔄 ${this.t('retry_btn')}</button></div>`;
+        speak(this.t('exam_failed', {score:correct}), true);
+      }
+    },
+
+    // ========== 🛠️ TOOLS ==========
+    renderTools: function() {
+      this.newFactCheck();
+      this.newRlhfChallenge();
+    },
+
+    updateToneLabel: function() {
+      const slider = document.getElementById('toneSlider');
+      const label = document.getElementById('toneLabel');
+      if(!slider || !label) return;
+      const tones = {1:'🎭 Formal', 2:'📋 Professional', 3:'🤝 Neutral', 4:'😊 Friendly', 5:'🎉 Casual'};
+      label.textContent = tones[slider.value] || tones[3];
+    },
+
+    generatePromptPreview: function() {
+      const input = document.getElementById('promptInput')?.value.trim();
+      const tone = document.getElementById('toneSlider')?.value || 3;
+      const preview = document.getElementById('promptPreview');
+      if (!input || !preview) return;
+      const toneNames = {1:"formal", 2:"professional", 3:"neutral", 4:"friendly", 5:"casual"};
+      const qwenPrompt = {
+        type: "qwen_editor_prompt", version: "qwen-v2.5",
+        task: input,
+        style: { tone: toneNames[tone] || "neutral", audience: "general", platform: "web" },
+        constraints: ["fact_check_required", "no_hallucinations", "cite_sources_if_possible"],
+        output_format: "markdown_with_metadata"
+      };
+      preview.textContent = JSON.stringify(qwenPrompt, null, 2);
+      preview.style.display = 'block';
+    },
+
+    newFactCheck: function() {
+      const list = document.getElementById('factCheckList');
+      if(!list) return;
+      const idx = Math.floor(Math.random() * FACT_CHECK_CHALLENGES.length);
+      const ch = FACT_CHECK_CHALLENGES[idx];
+      list.innerHTML = `<div class="fact-check-item">
+        <p style="font-size:0.9rem; margin-bottom:8px;"><b>${this.getBilingual(ch.claim)}</b></p>
+        <div class="btn-group">
+          <button class="btn secondary" onclick="app.checkFactCheck('verified', this)" style="font-size:0.75rem;">✅ ${this.t('verified')}</button>
+          <button class="btn secondary" onclick="app.checkFactCheck('suspicious', this)" style="font-size:0.75rem;">⚠️ ${this.t('suspicious')}</button>
+          <button class="btn secondary" onclick="app.checkFactCheck('false', this)" style="font-size:0.75rem;">❌ ${this.t('false_claim')}</button>
+        </div>
+        <div id="factResult" style="margin-top:8px; display:none;"></div>
+      </div>`;
+    },
+
+    checkFactCheck: function(verdict, btn) {
+      const ch = FACT_CHECK_CHALLENGES[FACT_CHECK_CHALLENGES.indexOf(
+        FACT_CHECK_CHALLENGES.find(c => this.getBilingual(c.claim) === btn.closest('.fact-check-item').querySelector('b').textContent)
+      )];
+      const res = document.getElementById('factResult');
+      if(!res || !ch) return;
+      res.style.display = 'block';
+      const ok = verdict === ch.verdict;
+      res.innerHTML = ok 
+        ? `<span style="color:var(--success);">✅ ${this.t('correct')}<br><small>${this.getBilingual(ch.explanation)}</small></span>`
+        : `<span style="color:var(--danger);">❌ ${this.t('incorrect')}<br><small>${this.getBilingual(ch.explanation)}</small></span>`;
+      if(ok) speak('Correct!', true);
+    },
+
+    newRlhfChallenge: function() {
+      const box = document.getElementById('rlhfComparator');
+      if(!box) return;
+      const idx = Math.floor(Math.random() * RLHF_CHALLENGES.length);
+      const ch = RLHF_CHALLENGES[idx];
+      box.innerHTML = `<p style="font-size:0.85rem; margin-bottom:8px;"><b>📝 ${this.getBilingual(ch.query)}</b></p>
+        <div class="rlhf-compare">
+          <div class="rlhf-card" onclick="app.selectRlhf('A', this)" id="rlhfA">
+            <h4 style="color:var(--accent);">${this.t('response_a')}</h4>
+            <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${this.getBilingual(ch.responseA)}</p>
+          </div>
+          <div class="rlhf-card" onclick="app.selectRlhf('B', this)" id="rlhfB">
+            <h4 style="color:var(--accent);">${this.t('response_b')}</h4>
+            <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${this.getBilingual(ch.responseB)}</p>
+          </div>
+        </div>
+        <textarea class="rlhf-textarea" id="rlhfJustify" placeholder="${this.t('justify')}"></textarea>
+        <button class="btn secondary" onclick="app.checkRlhf('${idx}')" style="font-size:0.8rem; margin-top:8px; width:100%;">${this.t('check_btn')}</button>
+        <div id="rlhfResult" style="margin-top:8px; display:none;"></div>`;
+    },
+
+    selectRlhf: function(choice, el) {
+      document.querySelectorAll('.rlhf-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      el.dataset.choice = choice;
+    },
+
+    checkRlhf: function(idx) {
+      const ch = RLHF_CHALLENGES[parseInt(idx)];
+      const selected = document.querySelector('.rlhf-card.selected')?.dataset.choice;
+      const justify = document.getElementById('rlhfJustify')?.value.trim();
+      const res = document.getElementById('rlhfResult');
+      if(!selected || !justify || !res) return;
+      res.style.display = 'block';
+      const ok = selected === ch.better && justify.length >= 10;
+      res.innerHTML = ok
+        ? `<span style="color:var(--success);">✅ ${this.t('practice_correct')}<br><small>${this.getBilingual(ch.explanation)}</small></span>`
+        : `<span style="color:var(--warning);">⚠️ ${this.t('practice_incorrect')}<br><small>${this.getBilingual(ch.explanation)}</small></span>`;
+      if(ok) speak('Correct!', true);
+    },
+    
+    resetProgress: function() {
+      if(confirm(this.t('reset_confirm'))) {
+        localStorage.removeItem('qwen_df_progress'); localStorage.removeItem('qwen_df_exam'); localStorage.removeItem('qwen_df_certificate');
+        courseProgress=Array(10).fill(false); examScore=0; certData=null; saveState(); this.renderCourse();
+        speak(this.t('progress_reset'), true); alert(this.t('reset_done'));
+      }
+    },
+    
+    // 🔹 Blob URL cleanup
+    exportCertificate: function() {
+      if(!certData){alert(this.t('cert_locked'));return;}
+      const b=new Blob([JSON.stringify(certData,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(b);
+      const a=document.createElement('a'); a.href=url; a.download=`certificate-${certData.id}.json`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url); speak(this.t('cert_downloaded'), true);
+    },
+
+    exportQwenPortfolio: function() {
+      if(!certData){alert(this.t('cert_locked'));return;}
+      const qwenData = {
+        metadata: { cert_id: certData.id, pipeline: certData.pipeline, version: certData.version, date: certData.date, issuer: certData.issuer, compliance: certData.compliance },
+        cases: [
+          {id:"e1",type:"prompt",verdict:"approved",format:"qwen_editor_prompt.json"},
+          {id:"e2",type:"factcheck",verdict:"partial_error",format:"qwen_factcheck_report.md"},
+          {id:"e3",type:"style",verdict:"adapted",format:"qwen_style_adaptation.json"},
+          {id:"e4",type:"safety",verdict:"flagged",format:"qwen_safety_audit.csv"},
+          {id:"e5",type:"rlhf",label:"A>B",format:"qwen_rlhf_pair.json"}
+        ],
+        skills: certData.skills,
+        signature: generateCertSignature(certData.id, certData.issuer)
+      };
+      const b=new Blob([JSON.stringify(qwenData,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(b);
+      const a=document.createElement('a'); a.href=url; a.download=`qwen-portfolio-${certData.id}.json`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url); speak(this.t('portfolio_downloaded'), true);
+    },
+    
+    printCertificate: function() {
+      if(!certData)return; 
+      const w=window.open('','_blank','width=900,height=700'); 
+      if(!w){alert('❌ Popup blocked.');return;}
+      try {
+        w.document.write(`<!DOCTYPE html><html><head><title>Certificate ${certData.id}</title><style>body{margin:0;padding:40px;font-family:system-ui;background:#0a0c14;color:#e6eaf0;min-height:100vh;display:flex;justify-content:center;align-items:center;}.cert{background:linear-gradient(135deg,rgba(155,89,182,0.15),rgba(0,212,255,0.1));border:4px solid #9b59b6;border-radius:20px;padding:50px;text-align:center;max-width:800px;}h1{color:#9b59b6;font-size:2.5rem;margin-bottom:20px;}.seal{width:100px;height:100px;border:4px solid #9b59b6;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:30px auto;font-size:3rem;background:rgba(155,89,182,0.1);}.badge{display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#9b59b6,#8a85f5);color:#fff;border-radius:30px;font-weight:bold;margin:20px 0;}.id{font-family:monospace;background:rgba(0,0,0,0.4);padding:8px 16px;border-radius:8px;color:#9b59b6;display:inline-block;margin:12px 0;}.meta{color:#00d4ff;font-size:0.9rem;margin:8px 0;}p{font-size:1.1rem;margin:10px 0;}@media print{body{background:white;color:black;}.cert{border-color:#9b59b6;background:white;}}</style></head><body><div class="cert"><div class="seal">✍️</div><h1>🎓 CERTIFICATE</h1><p style="font-size:1.3rem;margin:16px 0;"><b>${certData.issuer}</b></p><p>This certifies that</p><p style="font-size:1.2rem;color:#9b59b6;margin:8px 0;font-weight:bold;">${certData.course}</p><p>has successfully completed the AI content editing course for Qwen pipelines</p><div class="id">${certData.id}</div><p class="meta">Pipeline: ${certData.pipeline} | Version: ${certData.version}</p><p class="meta">Compliance: ${certData.compliance.join(', ')}</p><p class="meta">Date: ${certData.date} | Issuer: ${certData.issuer}</p><div class="badge">Qwen AI Editor Specialist</div></div><script>window.onload=function(){window.print();}<\/script></body></html>`);
+        w.document.close();
+        w.onafterprint = function() { try { w.close(); } catch(e) {} };
+        setTimeout(() => { try { if (!w.closed) w.close(); } catch(e) {} }, 10000);
+        speak(this.t('print_cert'), true);
+      } catch(e) { console.error('Print error:', e); w.close(); }
+    },
+    
+    validateCertificate: function() {
+      const inp=this._getEl('validateInput')?.value.trim().toUpperCase(), res=this._getEl('validateResult'); if(!res)return; res.style.display='block';
+      if(!inp||!/^QWEN-EDITOR-[A-Z0-9]{6}$/.test(inp)){res.textContent=`❌ ${this.t('invalid_format')}`;res.style.color='var(--danger)';return;}
+      if(certData && inp === certData.id) {
+        const sigValid = verifyCertSignature(certData.id, certData.issuer, certData.sig);
+        if(sigValid) { res.innerHTML=`<span style="color:var(--success);">✅ ${this.t('cert_valid')}<br><small>${this.t('issued_label')}: ${certData.date}</small></span>`; res.style.color='var(--success)'; speak(this.t('cert_valid'), true); }
+        else { res.textContent=`❌ ${this.t('cert_bad_sig')}`; res.style.color='var(--danger)'; speak(this.t('cert_bad_sig'), true); }
+      } else { res.textContent=`❌ ${this.t('cert_invalid')}`; res.style.color='var(--danger)'; speak(this.t('cert_invalid'), true); }
+    },
+    
+    copyPhone: function() {
+      const p='89202275676'; 
+      if(navigator.clipboard?.writeText) navigator.clipboard.writeText(p).then(()=>speak(this.t('copied'), true)).catch(()=>app._fallbackCopy(p));
+      else app._fallbackCopy(p);
+    },
+    _fallbackCopy: function(text) { try { const t=document.createElement('textarea'); t.value=text; t.setAttribute('readonly',''); t.style.cssText='position:fixed;top:-9999px;left:-9999px;'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); speak(this.t('copied'), true); } catch(e) { alert('Copy failed'); } },
+    openModal: function(id) { this._getEl(id)?.classList.add('open'); },
+    closeModal: function(id) { this._getEl(id)?.classList.remove('open'); },
+    toggleVoice: function() {
+      if(!isSpeechSupported()){ alert(currentLang==='ru'?'⚠️ Озвучка не поддерживается. Попробуйте Chrome/Edge.':'⚠️ Speech not supported. Try Chrome/Edge.'); return; }
+      voiceEnabled=!voiceEnabled; saveState(); updateVoiceBtn(); speak(voiceEnabled?this.t('voice_on'):this.t('voice_off'), true);
+    }
+  };
+
+  window.app = app;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    app.applyLang(); updateVoiceBtn(); app.renderCourse(); app.renderTools();
+    document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); app.switchTab(b.dataset.tab); }));
+    const vBtn=document.getElementById('voiceBtn'); if(vBtn)vBtn.addEventListener('click', (e)=>{e.stopPropagation();app.toggleVoice();});
+    let speechUnlocked=false; 
+    function unlock(){ if(speechUnlocked||!isSpeechSupported())return; try{ const u=new SpeechSynthesisUtterance('');u.volume=0; if(synth){synth.speak(u);synth.cancel();} speechUnlocked=true; }catch(e){} }
+    ['click','touchstart'].forEach(evt=>document.addEventListener(evt,unlock,{once:true,passive:true}));
+    setTimeout(()=>{if(!voicesLoaded&&isSpeechSupported()){loadVoicesWithRetry();}},2000);
+  });
+})();
+</script>
+</body>
+</html>
